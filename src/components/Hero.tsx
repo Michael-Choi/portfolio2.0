@@ -17,9 +17,10 @@ export const Hero = () => (
           <Button asChild>
             <a href="#contact">Get In Touch</a>
           </Button>
-          <Button variant="outline" asChild>
+          {/* finish some fun projects before adding this in */}
+          {/* <Button variant="outline" asChild>
             <a href="#projects">View Projects</a>
-          </Button>
+          </Button> */}
         </div>
         <div className="flex justify-center gap-6">
           <Socials />
