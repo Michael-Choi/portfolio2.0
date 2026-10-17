@@ -4,10 +4,9 @@ import { Experience } from '@/components/Experience';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
+import { IntegrationStory } from '@/components/IntegrationStory';
+import { MoreWork } from '@/components/MoreWork';
 import { Principles } from '@/components/Principles';
-import { Stats } from '@/components/Stats';
-import { Timeline } from '@/components/Timeline';
-import { Work } from '@/components/Work';
 
 export default function App() {
   // The sections render after the browser handles the URL hash, so a shared
@@ -28,9 +27,8 @@ export default function App() {
       <Header />
       <main>
         <Hero />
-        <Stats />
-        <Work />
-        <Timeline />
+        <IntegrationStory />
+        <MoreWork />
         <Experience />
         <Principles />
         <Contact />

@@ -10,6 +10,8 @@ export type Stage = {
   reducedMotion: boolean;
   /** Asks for one more frame when the loop is idle. */
   invalidate: () => void;
+  /** Renders every frame while true. Reduced motion keeps it off. */
+  setContinuous: (on: boolean) => void;
   dispose: () => void;
 };
 
@@ -18,8 +20,6 @@ type StageOptions = {
   onFrame: (frame: Frame) => void;
   /** Runs once during setup too, before createStage returns. */
   onResize?: (width: number, height: number, camera: THREE.PerspectiveCamera) => void;
-  /** Keeps rendering every frame. Reduced motion turns this off. */
-  continuous?: boolean;
 };
 
 export function readColor(name: string, fallback: string) {
@@ -30,14 +30,12 @@ export function readColor(name: string, fallback: string) {
 // The canvas renders only while it is on screen and the tab is visible.
 export function createStage(container: HTMLElement, options: StageOptions): Stage {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const continuous = (options.continuous ?? true) && !reducedMotion;
+  let continuous = false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.setClearColor(0x000000, 0);
   renderer.domElement.style.display = 'block';
-  // Vertical swipes scroll the page. Horizontal drags rotate the scene.
-  renderer.domElement.style.touchAction = 'pan-y';
   container.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
@@ -106,6 +104,10 @@ export function createStage(container: HTMLElement, options: StageOptions): Stag
     size,
     reducedMotion,
     invalidate,
+    setContinuous: (on: boolean) => {
+      continuous = on && !reducedMotion;
+      schedule();
+    },
     dispose: () => {
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
@@ -143,6 +145,8 @@ export function createDrag(element: HTMLElement, onChange: () => void): Drag {
   let startY = 0;
 
   const down = (event: PointerEvent) => {
+    // Touch never rotates the map, so a swipe on a phone always scrolls the page.
+    if (event.pointerType === 'touch') return;
     drag.active = true;
     drag.moved = false;
     lastX = startX = event.clientX;
@@ -157,7 +161,7 @@ export function createDrag(element: HTMLElement, onChange: () => void): Drag {
     const now = performance.now();
     const dt = Math.max((now - lastTime) / 1000, 1 / 120);
     const dx = event.clientX - lastX;
-    const dy = event.pointerType === 'touch' ? 0 : event.clientY - lastY;
+    const dy = event.clientY - lastY;
     drag.velocity.x = (dx * 0.006) / dt;
     drag.velocity.y = (dy * 0.006) / dt;
     if (Math.hypot(event.clientX - startX, event.clientY - startY) > 4) drag.moved = true;

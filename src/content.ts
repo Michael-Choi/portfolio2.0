@@ -4,202 +4,234 @@ export const profile = {
   name: 'Michael Choi',
   role: 'Senior Software Engineer',
   company: 'Motion',
-  location: 'Toronto, Canada',
+  location: 'Toronto',
   email: 'michael@michaelchoi.ca',
   github: 'https://github.com/Michael-Choi',
   linkedin: 'https://www.linkedin.com/in/michael-b-choi/',
 };
 
+/** Public listing of the Motion connector in Claude's connector directory. */
+const CLAUDE_DIRECTORY = 'https://claude.com/connectors/motion';
+
+export type Segment = { text: string; href?: string };
+
 export const hero = {
-  eyebrow: 'Senior Software Engineer · AI agents & integrations',
   statement: 'I ship the integrations that connect AI agents to the tools people already use.',
-  intro:
-    'At Motion, I built the first version of the Motion MCP server, so assistants like Claude can work with live Motion data. Then I connected Runneth, the Motion AI agent for creative strategy, in both directions: other assistants can hand work to Runneth, and Runneth can use customer MCP servers and a large catalog of business apps.',
+  // mcp.runneth.com stays plain text: it is an MCP endpoint, not a page for people.
+  intro: [
+    { text: 'I started the Motion MCP server, now in ' },
+    { text: 'Claude’s connector directory', href: CLAUDE_DIRECTORY },
+    {
+      text: ', and helped launch the public Runneth MCP server at mcp.runneth.com. I also built Runneth’s connections to customer MCP servers and to business apps.',
+    },
+  ] satisfies Segment[],
+  latest: { text: 'Latest: Runneth MCP is public', href: '#runneth-mcp' },
 };
 
-export const stats = [
-  { value: '18 days', label: 'to build the first Motion MCP server' },
-  { value: '2', label: 'MCP servers I built or extended: Motion MCP and Runneth MCP' },
-  { value: '92', label: 'urgent and high-priority issues resolved in 2026' },
-  { value: '500+', label: 'teammate pull requests reviewed in 2026' },
+// Outcomes under the hero. Each one links to the work it comes from.
+export const proof = [
+  { value: '18 days', label: 'to the first Motion MCP server', href: '#motion-mcp' },
+  { value: '< 2 months', label: 'from first commit to Claude’s connector directory', href: '#motion-mcp' },
+  { value: '2 weeks', label: 'to production use for MCP connections', href: '#mcp-client' },
+  { value: '19 s → ~0', label: 'Slack queue wait for the agent', href: '#slack' },
 ];
 
-export type Feature = {
+export type Group = 'hub' | 'surface' | 'data' | 'tools' | 'apps';
+
+export type Stat = { value: string; label: string };
+export type Link = { label: string; href: string };
+
+export type StoryStep = {
+  id: string;
+  fig: string;
   tag: string;
+  /** The map color that this work belongs to. */
+  group: Group;
+  date: string;
   title: string;
-  body: string;
-  impact: string;
-  shipped: string;
+  what: string;
+  bullets: string[];
+  stat?: Stat;
+  links?: Link[];
+  /** The request path that the map plays for this step. */
+  path: string[];
+  /** The figure name for this work, shown under the map. */
+  edgeLabel: string;
+  /** Camera turn in degrees, so the active path faces the viewer. */
+  yaw: number;
 };
 
-export const integrationWork: Feature[] = [
+// "What I built": the four MCP and integration features, told against the map.
+export const story: StoryStep[] = [
   {
+    id: 'motion-mcp',
+    fig: '01',
     tag: 'Motion MCP',
+    group: 'data',
+    date: 'Mar – Apr 2026',
     title: 'Motion inside Claude',
-    body: 'I started the Motion MCP server and built its OAuth sign-in, its first tools, and a stateless design that scales out. Marketers connect Motion to Claude, then ask about reports, creative insights, and brand context with live data.',
-    impact: 'Listed in Claude’s connector directory less than two months after the first commit, and now part of Motion’s paid plans.',
-    shipped: 'Mar – Apr 2026',
+    what: 'Marketers ask Claude about their ads and get answers from live Motion data.',
+    bullets: [
+      'Started the server and built its OAuth sign-in',
+      'Wrote the first tools for reports and creative insights',
+      'Made it stateless, so it scales out',
+    ],
+    stat: { value: '18 days', label: 'to a working server' },
+    links: [{ label: 'Claude connector directory', href: CLAUDE_DIRECTORY }],
+    path: ['claude', 'motion', 'claude'],
+    edgeLabel: 'Fig 01 · Motion MCP server',
+    yaw: -12,
   },
   {
+    id: 'runneth-mcp',
+    fig: '02',
     tag: 'Runneth MCP',
+    group: 'hub',
+    date: 'Oct 2026',
     title: 'Runneth inside other assistants',
-    body: 'I helped launch the Runneth MCP server at mcp.runneth.com. My parts: public OAuth sign-in, live organization discovery, and a separate conversation channel for assistant traffic. Any AI agent can now hand creative strategy work to Runneth and read the results.',
-    impact: 'Customers can use Runneth from the assistant they already work in.',
-    shipped: 'Oct 2026',
+    what: 'Any AI agent can hand creative strategy work to Runneth and read the results.',
+    bullets: [
+      'Public OAuth sign-in at mcp.runneth.com',
+      'Live discovery of every organization a user belongs to',
+      'A separate conversation channel for assistant traffic',
+    ],
+    path: ['assistants', 'runneth', 'motion', 'runneth', 'assistants'],
+    edgeLabel: 'Fig 02 · Runneth MCP',
+    yaw: -6,
   },
   {
+    id: 'mcp-client',
+    fig: '03',
     tag: 'MCP client',
+    group: 'tools',
+    date: 'Sep – Oct 2026',
     title: 'Runneth connects to any MCP server',
-    body: 'Customers add their own MCP servers from chat, with OAuth, API key, or machine sign-in. Runneth discovers the tools and uses them in its work. Credentials stay inside each customer’s isolated workspace.',
-    impact: 'In production use within two weeks of launch. Customers extend Runneth with their own tools, and Motion does not need to build each one.',
-    shipped: 'Sep – Oct 2026',
+    what: 'Customers connect their own MCP servers to Runneth from chat.',
+    bullets: [
+      'OAuth, API key, and machine sign-in',
+      'Runneth discovers the tools and uses them',
+      'Credentials stay in each customer’s isolated workspace',
+    ],
+    stat: { value: '2 weeks', label: 'to production use' },
+    path: ['slack', 'runneth', 'mcp', 'runneth', 'slack'],
+    edgeLabel: 'Fig 03 · MCP client',
+    yaw: 10,
   },
   {
-    tag: 'Integrations',
+    id: 'business-apps',
+    fig: '04',
+    tag: 'Business apps',
+    group: 'apps',
+    date: 'May 2026',
     title: 'Business apps in one click',
-    body: 'I built the integration layer that connects Runneth to a large catalog of business apps. Customers sign in with OAuth once. Credentials stay in our backend, outside the agent sandbox.',
-    impact: 'A new app is a configuration entry, not a new integration project. Teammates added many more apps on this layer.',
-    shipped: 'May 2026',
+    what: 'Customers connect a business app with one OAuth sign-in, and Runneth reads its data.',
+    bullets: [
+      'One integration layer for a large catalog of apps',
+      'Provider credentials stay outside the agent sandbox',
+      'Teammates added many more apps on it',
+    ],
+    path: ['web', 'runneth', 'apps', 'runneth', 'web'],
+    edgeLabel: 'Fig 04 · App layer',
+    yaw: 6,
   },
 ];
 
-export const productWork: Feature[] = [
-  {
-    tag: 'Slack',
-    title: 'A fast, quiet teammate in Slack',
-    body: 'Runneth works in private channels and threads, stays quiet when a message is for someone else, and recovers answers that failed to post. I also cut its Slack permissions to least privilege for the Slack Marketplace review.',
-    impact: 'Slack queue wait fell from about 19 seconds to near zero, and each turn got about 5x faster.',
-    shipped: 'May – Oct 2026',
-  },
-  {
-    tag: 'App builder',
-    title: 'Agents check their own apps',
-    body: 'Runneth takes desktop and mobile screenshots of the apps it builds, finds layout problems, and fixes them.',
-    impact: 'In controlled tests, it caught all four seeded layout defects.',
-    shipped: 'Sep 2026',
-  },
-  {
-    tag: 'Routines',
-    title: 'Workflows that start on events',
-    body: 'The foundation for routines that start when an event arrives, with retries and protection against duplicate runs.',
-    impact: 'The base for webhook-triggered automation in Runneth.',
-    shipped: 'Sep 2026',
-  },
-  {
-    tag: 'Reliability',
-    title: 'Reliability at customer scale',
-    body: 'I traced repeated crashes to session cleanup: one dead session stopped every conversation on its server. I contained it. I also fixed stalled background work and broken reports, and cut Meta connection errors. Each problem reached tens to hundreds of customer organizations.',
-    impact: 'A failed session no longer interrupts the other conversations on its server.',
-    shipped: 'Jul – Oct 2026',
-  },
-  {
-    tag: 'Security',
-    title: 'Revocable sessions and two-factor sign-in',
-    body: 'I led the move from sign-in tokens that never expired to revocable sessions, and users moved over in place. I shipped two-factor sign-in with an organization-wide rule for admins.',
-    impact: 'Fixed six findings from a third-party security assessment in about two weeks.',
-    shipped: 'Feb – Oct 2026',
-  },
-  {
-    tag: 'Chat',
-    title: 'Long agent runs that are easy to follow',
-    body: 'Runneth chat shows live task progress, an outline to move through long conversations, and list filters that stay in place.',
-    impact: 'Users can see what the agent is doing while it works.',
-    shipped: 'Jul – Sep 2026',
-  },
-];
-
-export type Month = {
-  month: string;
-  milestone?: string;
+export type Card = {
+  id: string;
+  tag: string;
+  group: Group;
+  date: string;
   title: string;
-  body: string;
+  what: string;
+  bullets: string[];
+  stat?: Stat;
 };
 
-export const timeline: Month[] = [
+export const moreWork: Card[] = [
   {
-    month: 'Jan',
-    milestone: 'Joined Motion · Infrastructure',
-    title: 'Scoped API access for AI',
-    body: 'Organization-scoped tokens, so AI environments call Motion APIs only for their own workspaces.',
+    id: 'slack',
+    tag: 'Slack',
+    group: 'surface',
+    date: 'May – Oct 2026',
+    title: 'A fast, quiet teammate in Slack',
+    what: 'Runneth answers in channels and threads, and stays quiet when a message is for someone else.',
+    bullets: ['Recovered answers that failed to post', 'Cut Slack permissions to least privilege', 'Made each turn about 5x faster'],
+    stat: { value: '19 s → ~0', label: 'Slack queue wait' },
   },
   {
-    month: 'Feb',
-    title: 'Revocable sessions',
-    body: 'A new authentication system with revocable sessions behind existing logins and API access. Users moved over in place.',
+    id: 'reliability',
+    tag: 'Reliability',
+    group: 'hub',
+    date: 'Jul – Oct 2026',
+    title: 'Reliability at customer scale',
+    what: 'Fixed failures that reached tens to hundreds of customer organizations.',
+    bullets: [
+      'One crashed session no longer stops a whole server',
+      'Unblocked work stalled by memory pressure',
+      'Fixed broken reports and cut Meta connection errors',
+    ],
   },
   {
-    month: 'Mar',
-    title: 'Two-factor sign-in and the Motion MCP server',
-    body: 'Two-factor authentication with organization-wide rules. The first Motion MCP server, built in 18 days, with OAuth for the Claude connector.',
-  },
-  {
-    month: 'Apr',
-    title: 'Motion listed in Claude’s connector directory',
-    body: 'Alpha customers on Apr 9, a stateless server that scales out, and a listing in Claude’s connector directory on Apr 27.',
-  },
-  {
-    month: 'May',
-    milestone: 'Moved to the Runneth AI team',
-    title: 'Business apps for Runneth',
-    body: 'One integration layer for business apps, plus Slack answers that recover when posting fails.',
-  },
-  {
-    month: 'Jun',
-    title: 'Slack on bot permissions',
-    body: 'Slack search and channel access on the bot’s own permissions, with no automatic channel joins.',
-  },
-  {
-    month: 'Jul',
-    title: 'Live progress and contained failures',
-    body: 'Live task progress in Runneth chat. A failed session no longer stops other conversations.',
-  },
-  {
-    month: 'Aug',
-    title: 'Agents that finish the job',
-    body: 'Large batches of tool calls complete, stalled background work recovers, and shared instructions are cached.',
-  },
-  {
-    month: 'Sep',
-    title: 'MCP connections launch',
-    body: 'Runneth connects to customer MCP servers with OAuth. Also: screenshot checks for generated apps and the foundation for event-triggered routines.',
-  },
-  {
-    month: 'Oct',
-    title: 'mcp.runneth.com opens to any agent',
-    body: 'Public OAuth sign-in, live organization discovery, and a conversation channel for other assistants.',
+    id: 'security',
+    tag: 'Security',
+    group: 'data',
+    date: 'Feb – Oct 2026',
+    title: 'Revocable sessions and two-factor sign-in',
+    what: 'Moved Motion from sign-in tokens that never expired to revocable sessions.',
+    bullets: ['Users moved over in place', 'Two-factor sign-in with an organization-wide rule'],
+    stat: { value: '6 findings', label: 'from a security assessment, fixed in about two weeks' },
   },
 ];
 
-export type Role = { title: string; dates: string; points: string[] };
-export type Job = { company: string; note?: string; summary: string; roles: Role[] };
+export const alsoShipped = [
+  { tag: 'App builder', text: 'Runneth screenshots the apps it builds on desktop and mobile, then fixes layout problems.' },
+  { tag: 'Routines', text: 'The foundation for routines that start when an event arrives.' },
+  { tag: 'Chat', text: 'Live task progress and an outline for long conversations.' },
+];
+
+export type Month = { month: string; title: string; milestone?: boolean };
+export type Role = { title: string; dates: string; points?: string[] };
+export type Job = {
+  company: string;
+  years: string;
+  note?: string;
+  summary: string;
+  roles: Role[];
+  points?: string[];
+  strip?: Month[];
+};
 
 export const experience: Job[] = [
   {
     company: 'Motion',
+    years: '2026 – now',
     summary:
       'Creative analytics for performance marketing teams. Runneth is the Motion AI agent for creative strategy.',
     roles: [
-      {
-        title: 'Senior Software Engineer, Runneth AI',
-        dates: 'May 2026 – now',
-        points: [
-          'Created MCP connections and the business app layer for Runneth, and helped launch the public Runneth MCP server.',
-          'Led Slack speed and reliability fixes, and shipped chat, app builder, and routine features.',
-          'Resolved failures that reached tens to hundreds of customer organizations, and reviewed 300+ teammate pull requests.',
-        ],
-      },
-      {
-        title: 'Senior Software Engineer, Infrastructure',
-        dates: 'Jan – May 2026',
-        points: [
-          'Started the Motion MCP server and its Claude connector, from first commit to Claude’s connector directory in under two months.',
-          'Led the move to revocable sessions, two-factor sign-in, and scoped API access for AI agents.',
-        ],
-      },
+      { title: 'Senior Software Engineer, Runneth AI', dates: 'May 2026 – now' },
+      { title: 'Senior Software Engineer, Infrastructure', dates: 'Jan – May 2026' },
+    ],
+    points: [
+      'Resolved 92 urgent and high-priority issues in 2026.',
+      'Reviewed 500+ teammate pull requests across both codebases.',
+      'Took on-call work for the agent fleet: crash loops, stalled queues, and sign-in outages.',
+    ],
+    strip: [
+      { month: 'Jan', title: 'Joined Motion · scoped API access for AI', milestone: true },
+      { month: 'Feb', title: 'Revocable sessions' },
+      { month: 'Mar', title: 'Two-factor sign-in · first Motion MCP server' },
+      { month: 'Apr', title: 'Listed in Claude’s connector directory' },
+      { month: 'May', title: 'Moved to Runneth AI · business apps', milestone: true },
+      { month: 'Jun', title: 'Slack on bot permissions' },
+      { month: 'Jul', title: 'Contained session failures' },
+      { month: 'Aug', title: 'Recovered stalled work' },
+      { month: 'Sep', title: 'MCP connections launch' },
+      { month: 'Oct', title: 'mcp.runneth.com opens to any agent' },
     ],
   },
   {
     company: 'TravelBank',
+    years: '2021 – 2025',
     note: 'Acquired by U.S. Bank',
     summary: 'Corporate travel booking and expense management.',
     roles: [
@@ -226,6 +258,7 @@ export const experience: Job[] = [
   },
   {
     company: 'BrokerBay',
+    years: '2019 – 2021',
     note: 'Acquired by Carrier',
     summary: 'Showing management software for real estate brokerages.',
     roles: [
@@ -244,96 +277,29 @@ export const experience: Job[] = [
 
 export const principles = [
   {
-    title: 'Meet people where they work',
-    body: 'The best agent feature is the one in the tool you already have open: Slack, Claude, or your own systems.',
-  },
-  {
-    title: 'Ship it, then prove it',
-    body: 'I ship in small steps and test each one end to end on the real stack: the queue, the sandbox, and the message in Slack.',
-  },
-  {
-    title: 'Trace it before you fix it',
-    body: 'I start from logs, traces, and the real failure. In one pass, I traced 74 production alerts to their root causes. A fix for a guessed cause is a second bug.',
-  },
-  {
     title: 'Agents on the team',
-    body: 'Most days I run several coding agents in parallel and review their work like a lead reviews a team. The skills are the same: clear tasks, honest checks, and a high bar for done.',
+    body: 'I run several coding agents in parallel and review their work like a lead reviews a team.',
   },
+  { title: 'Meet people where they work', body: 'Agent features belong in the tools people already have open.' },
+  { title: 'Ship it, then prove it', body: 'Small steps, each tested end to end on the real stack.' },
+  { title: 'Trace it before you fix it', body: 'A fix for a guessed cause is a second bug.' },
 ];
 
 // Paraphrased, with no names. Quote a teammate by name only with their permission.
-export const recognition = [
-  'Recognized in a company shoutout for always helping teammates and sharing knowledge.',
-  'Known for reviewing teammates’ pull requests without being asked.',
-  'Fixed a customer-facing incident about two and a half hours after the report.',
-];
+export const recognition = 'Recognized in a company shoutout for always helping teammates and sharing knowledge.';
 
-// Nodes for the interactive integration map in the hero.
-export type MapNode = {
-  id: string;
-  label: string;
-  group: 'hub' | 'surface' | 'data' | 'tools' | 'apps';
-  title: string;
-  body: string;
-};
+export type MapNode = { id: string; label: string; kind: string; group: Group; body: string };
 
+// Nodes for the integration map. The body text also forms the screen reader description.
 export const mapNodes: MapNode[] = [
-  {
-    id: 'runneth',
-    label: 'Runneth',
-    group: 'hub',
-    title: 'Runneth',
-    body: 'The Motion AI agent for creative strategy. Every connection on this map goes through it.',
-  },
-  {
-    id: 'claude',
-    label: 'Claude',
-    group: 'surface',
-    title: 'Claude',
-    body: 'The Motion MCP server gives Claude live Motion data. The Runneth MCP server lets Claude hand work to Runneth.',
-  },
-  {
-    id: 'assistants',
-    label: 'Other assistants',
-    group: 'surface',
-    title: 'Other AI assistants',
-    body: 'Any MCP client can sign in with OAuth, give work to Runneth, and read the results.',
-  },
-  {
-    id: 'slack',
-    label: 'Slack',
-    group: 'surface',
-    title: 'Slack',
-    body: 'Runneth answers in channels and threads, shows live progress, and stays quiet when a message is for someone else.',
-  },
-  {
-    id: 'web',
-    label: 'Runneth chat',
-    group: 'surface',
-    title: 'Runneth chat',
-    body: 'Live task progress, an outline for long conversations, and filters that stay in place.',
-  },
-  {
-    id: 'motion',
-    label: 'Motion data',
-    group: 'data',
-    title: 'Motion data',
-    body: 'Reports, creative insights, and brand context, served to AI assistants by the Motion MCP server.',
-  },
-  {
-    id: 'mcp',
-    label: 'Your MCP servers',
-    group: 'tools',
-    title: 'Your MCP servers',
-    body: 'Customers connect their own MCP servers from chat, with OAuth. Runneth discovers the tools and uses them.',
-  },
-  {
-    id: 'apps',
-    label: 'Business apps',
-    group: 'apps',
-    title: 'Business apps',
-    body: 'One integration layer and one OAuth sign-in. Credentials stay outside the agent sandbox.',
-  },
+  { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', body: 'the Motion AI agent for creative strategy, in the center' },
+  { id: 'claude', label: 'Claude', kind: 'Assistant', group: 'surface', body: 'an AI assistant that reads Motion data and hands work to Runneth' },
+  { id: 'assistants', label: 'Other assistants', kind: 'Any MCP client', group: 'surface', body: 'any MCP client that hands work to Runneth' },
+  { id: 'slack', label: 'Slack', kind: 'Team chat', group: 'surface', body: 'where teams talk to Runneth in channels and threads' },
+  { id: 'web', label: 'Runneth chat', kind: 'Web chat', group: 'surface', body: 'the Runneth web chat' },
+  { id: 'motion', label: 'Motion data', kind: 'Ad data', group: 'data', body: 'reports, creative insights, and brand context' },
+  { id: 'mcp', label: 'Your MCP servers', kind: 'Customer tools', group: 'tools', body: 'MCP servers that customers connect from chat' },
+  { id: 'apps', label: 'Business apps', kind: 'One-click OAuth', group: 'apps', body: 'business apps that customers connect with OAuth' },
 ];
 
 export const mapEdges: [string, string][] = [
@@ -347,36 +313,7 @@ export const mapEdges: [string, string][] = [
   ['runneth', 'apps'],
 ];
 
-// Real request paths through the map. Each path uses edges from mapEdges.
-export type MapScenario = { id: string; label: string; path: string[]; title: string; body: string };
-
-export const mapScenarios: MapScenario[] = [
-  {
-    id: 'motion-mcp',
-    label: 'Claude reads Motion',
-    path: ['claude', 'motion', 'claude'],
-    title: 'Motion MCP',
-    body: 'Claude signs in with OAuth and reads live Motion reports and creative insights through the Motion MCP server.',
-  },
-  {
-    id: 'runneth-mcp',
-    label: 'Agents delegate to Runneth',
-    path: ['assistants', 'runneth', 'motion', 'runneth', 'assistants'],
-    title: 'Runneth MCP',
-    body: 'Another AI agent hands creative strategy work to Runneth over the Runneth MCP server. Runneth pulls Motion data and sends the result back.',
-  },
-  {
-    id: 'mcp-client',
-    label: 'Runneth uses your MCP servers',
-    path: ['slack', 'runneth', 'mcp', 'runneth', 'slack'],
-    title: 'MCP connections',
-    body: 'A teammate asks in Slack. Runneth calls the customer’s own MCP server and answers in the thread.',
-  },
-  {
-    id: 'apps',
-    label: 'Runneth uses your apps',
-    path: ['web', 'runneth', 'apps', 'runneth', 'web'],
-    title: 'Business apps',
-    body: 'In Runneth chat, the agent reads from a business app that the customer connected with one OAuth sign-in.',
-  },
-];
+export const contact = {
+  headline: 'Talk to me about MCP and agent integrations.',
+  body: 'I am happy to talk about MCP, agent integrations, or shipping AI features to production.',
+};

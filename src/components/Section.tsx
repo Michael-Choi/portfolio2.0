@@ -7,14 +7,13 @@ type SectionProps = {
   intro?: string;
   /** Puts the heading above the content, so the content can use the full width. */
   wide?: boolean;
+  className?: string;
   children: ReactNode;
 };
 
-export const Section = ({ id, index, title, intro, wide = false, children }: SectionProps) => (
-  <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-16 border-t border-line">
-    <div
-      className={`mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 md:py-28 ${wide ? '' : 'md:grid-cols-12'}`}
-    >
+export const Section = ({ id, index, title, intro, wide = false, className = '', children }: SectionProps) => (
+  <section id={id} aria-labelledby={`${id}-title`} className={`scroll-mt-16 ${className}`}>
+    <div className={`mx-auto grid max-w-6xl gap-10 px-4 py-24 sm:px-6 md:py-32 ${wide ? '' : 'md:grid-cols-12'}`}>
       <header className={wide ? 'max-w-2xl' : 'md:col-span-4'}>
         <div className={wide ? '' : 'md:sticky md:top-28'}>
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">{index}</p>

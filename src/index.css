@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -12,17 +12,28 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-accent: var(--accent);
-  --color-accent-ink: var(--accent-ink);
-  --color-sage: var(--sage);
+  --color-accent-text: var(--accent-text);
+  --color-hub: var(--hub);
+  --color-surface: var(--surface);
+  --color-surface-text: var(--surface-text);
+  --color-data: var(--data);
+  --color-data-text: var(--data-text);
+  --color-tools: var(--tools);
+  --color-tools-text: var(--tools-text);
+  --color-apps: var(--apps);
+  --color-apps-text: var(--apps-text);
 }
 
 @utility font-display {
   font-family: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
 }
 
-/* The integration map reads these tokens too, so it matches the page. */
+/*
+ * Fill colors (--accent, --surface, ...) are for dots, edges, and the map.
+ * Small text uses the darker *-text values, which pass WCAG AA on white and on --paper.
+ */
 :root {
   color-scheme: light;
   --paper: #f6f6f3;
@@ -31,8 +42,16 @@
   --muted: #5b616b;
   --line: #e3e3de;
   --accent: #f0532a;
-  --accent-ink: #ffffff;
-  --sage: #ffe2d8;
+  --accent-text: #c43a16;
+  --hub: #f0532a;
+  --surface: #2f6fdf;
+  --surface-text: #2459b8;
+  --data: #c7860f;
+  --data-text: #8f5f08;
+  --tools: #7c4ddb;
+  --tools-text: #6339bd;
+  --apps: #0c9a8f;
+  --apps-text: #0a756c;
 }
 
 html {
@@ -57,39 +76,215 @@ body {
 
 ::selection {
   background: var(--accent);
-  color: var(--accent-ink);
+  color: #ffffff;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-text);
   outline-offset: 3px;
   border-radius: 4px;
 }
 
-/* Labels that three.js places over the integration map. */
-.map-label {
-  pointer-events: none;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
-  color: var(--muted);
-  padding: 4px 7px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  transition:
-    color 160ms,
-    background-color 160ms,
-    border-color 160ms;
+/* Sections below the story render only when they come near the viewport. */
+.defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 800px;
 }
 
-.map-label[data-group='hub'] {
-  color: var(--accent);
+/*
+ * Map nodes. The three.js scene and the SVG poster render the same markup (src/nodeCard.ts).
+ * The scene sets --depth and data-state on .node-inner.
+ */
+.node {
+  pointer-events: none;
+}
+
+.node-inner {
+  --node-color: var(--surface);
+  position: relative;
+  transform: scale(var(--depth, 1));
+  transition:
+    opacity 250ms,
+    transform 250ms;
+}
+
+.node-inner[data-group='hub'] {
+  --node-color: var(--hub);
+}
+.node-inner[data-group='data'] {
+  --node-color: var(--data);
+}
+.node-inner[data-group='tools'] {
+  --node-color: var(--tools);
+}
+.node-inner[data-group='apps'] {
+  --node-color: var(--apps);
+}
+
+.node-inner[data-state='dim'] {
+  opacity: 0.5;
+}
+
+.node-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 14px 6px 6px;
+  white-space: nowrap;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 2px rgb(12 13 16 / 0.05),
+    0 10px 24px -14px rgb(12 13 16 / 0.28);
+  transition:
+    border-color 250ms,
+    box-shadow 250ms;
+}
+
+.node-inner[data-state='active'] .node-card {
+  border-color: color-mix(in oklab, var(--node-color) 55%, var(--line));
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--node-color) 12%, transparent),
+    0 14px 30px -14px rgb(12 13 16 / 0.35);
+}
+
+/* Stacked cards behind nodes that stand for many servers or apps. */
+.node-stack {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  transform: translate(5px, 5px);
+}
+
+.node-stack.two {
+  transform: translate(10px, 10px);
+  opacity: 0.6;
+}
+
+.node-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--node-color);
+}
+
+.node-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.node-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.node-kind {
+  display: block;
+  font-size: 12px;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+/* Runneth: the hub card is larger and carries a soft ring. */
+.node-inner[data-group='hub'] .node-card {
+  padding: 8px 18px 8px 8px;
+  border-color: color-mix(in oklab, var(--hub) 35%, var(--line));
+  box-shadow:
+    0 0 0 6px color-mix(in oklab, var(--hub) 10%, transparent),
+    0 16px 34px -14px rgb(240 83 42 / 0.45);
+}
+
+.node-inner[data-group='hub'] .node-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.node-inner[data-group='hub'] .node-label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.node-inner[data-group='hub'] .node-card::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 1.5px solid color-mix(in oklab, var(--hub) 45%, transparent);
+  border-radius: 18px;
+  animation: hub-ring 2.6s ease-out infinite;
+}
+
+@keyframes hub-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+/* Phones: smaller cards without the role line. */
+.map-compact .node-card {
+  gap: 6px;
+  padding: 4px 9px 4px 4px;
+}
+.map-compact .node-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+.map-compact .node-icon svg {
+  width: 13px;
+  height: 13px;
+}
+.map-compact .node-label {
   font-size: 12px;
 }
+.map-compact .node-kind {
+  display: none;
+}
+.map-compact .node-inner[data-group='hub'] .node-icon {
+  width: 26px;
+  height: 26px;
+}
+.map-compact .node-inner[data-group='hub'] .node-label {
+  font-size: 13px;
+}
 
-.map-label[data-active='true'] {
-  color: var(--ink);
-  background: color-mix(in oklab, var(--card) 85%, transparent);
-  border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+@media (prefers-reduced-motion: reduce) {
+  .node-inner,
+  .node-card {
+    transition: none;
+  }
+  .node-inner[data-group='hub'] .node-card::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* The phone tab strip scrolls sideways and snaps to each tab. */
+.tab-strip {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.tab-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-strip > * {
+  scroll-snap-align: start;
 }

@@ -1,387 +1,256 @@
 import * as THREE from 'three';
 import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
-import { mapEdges, mapNodes, type MapNode } from '@/content';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+import { mapEdges, mapNodes } from '@/content';
+import { BASE_PITCH, BASE_YAW, FOV, POSITIONS, cameraZFor } from '@/mapLayout';
+import { nodeCardHTML } from '@/nodeCard';
 import { createDrag, createStage, getGlowTexture, readColor } from './stage';
 
-const POSITIONS: Record<string, [number, number, number]> = {
-  runneth: [0, 0, 0],
-  claude: [-3.1, 1.5, 0.9],
-  assistants: [-3.2, -1.0, -1.1],
-  slack: [-1.1, 2.7, -1.3],
-  web: [-1.4, -2.6, 1.1],
-  motion: [0.4, -1.3, 3.0],
-  mcp: [3.0, 1.5, 0.5],
-  apps: [2.7, -1.5, -0.7],
-};
-
-// The hub uses the page accent. These colors keep enough contrast on a light page.
-const PALETTE: Record<Exclude<MapNode['group'], 'hub'>, string> = {
-  surface: '#2f6fdf',
-  data: '#c7860f',
-  tools: '#7c4ddb',
-  apps: '#0c9a8f',
-};
-
-/** Seconds for the tracer to cross one edge, and the pause before a scenario repeats. */
+/** Seconds for the tracer to cross one edge, and the pause before a path repeats. */
 const HOP = 0.95;
 const PAUSE = 1.1;
+/** How far a visitor can turn the map by dragging, in radians (±15° and ±8°). */
+const MAX_DRAG_YAW = THREE.MathUtils.degToRad(15);
+const MAX_DRAG_PITCH = THREE.MathUtils.degToRad(8);
+/** The camera reaches about 95% of a new scenario's angle in 600 ms. */
+const EASE_RATE = 5;
+/** Line widths in CSS pixels. */
+const LINE_WIDTH = 1.5;
+const ACTIVE_WIDTH = 2.5;
+/** Trail sprites behind the tracer, and their spacing along the path in hops. */
+const TRAIL = 8;
+const TRAIL_GAP = 0.035;
+
+export type MapScenario = { path: string[]; yaw: number };
 
 type Options = {
-  onHover: (id: string | null) => void;
-  onSelect: (id: string | null) => void;
+  /** Phones use smaller cards without the role line. */
+  compact: boolean;
+  /** Called after the first frame, so the page can fade the canvas in over the poster. */
+  onReady: () => void;
 };
 
 type Edge = {
   from: string;
   to: string;
   curve: THREE.QuadraticBezierCurve3;
-  material: THREE.LineBasicMaterial;
-  baseColor: THREE.Color;
+  material: LineMaterial;
 };
-
-type Packet = { edge: Edge; sprite: THREE.Sprite; offset: number; speed: number; forward: boolean };
 
 type Hop = { edge: Edge; forward: boolean };
 
+const edgeKey = (a: string, b: string) => [a, b].sort().join('|');
+
+/** Bends the midpoint outward and upward. MapPoster draws the same curve in 2D. */
+function edgeCurve(from: string, to: string) {
+  const a = new THREE.Vector3(...POSITIONS[from]);
+  const b = new THREE.Vector3(...POSITIONS[to]);
+  const mid = a.clone().add(b).multiplyScalar(0.5);
+  const bend = mid.clone().normalize().multiplyScalar(0.5).add(new THREE.Vector3(0, 0.35, 0));
+  return new THREE.QuadraticBezierCurve3(a, mid.add(bend), b);
+}
+
 export function mountIntegrationMap(container: HTMLElement, options: Options) {
-  const hubColor = readColor('--accent', '#f0532a');
-  const lineColor = readColor('--muted', '#5b616b');
-  // Additive glows vanish on a light page, so sprites use normal blending.
-  const blending = THREE.NormalBlending;
-  const baseOpacity = 0.32;
-  const nodeColor = (node: MapNode) => (node.group === 'hub' ? hubColor.clone() : new THREE.Color(PALETTE[node.group]));
+  const hubColor = readColor('--hub', '#f0532a');
+  const restColor = new THREE.Color('#cfcfc8');
 
   const labels = new CSS2DRenderer();
   labels.domElement.style.position = 'absolute';
   labels.domElement.style.inset = '0';
   labels.domElement.style.pointerEvents = 'none';
+  if (options.compact) labels.domElement.classList.add('map-compact');
   container.appendChild(labels.domElement);
 
   const graph = new THREE.Group();
-  graph.rotation.set(0.12, -0.35, 0);
-  // Shifted up and right, so the info card in the lower left covers less of the map.
-  graph.position.set(0.1, 0.4, 0);
+  graph.rotation.set(BASE_PITCH, BASE_YAW, 0);
 
-  const nodes = new Map<
-    string,
-    { node: MapNode; mesh: THREE.Mesh; glow: THREE.Sprite; label: CSS2DObject; hit: THREE.Mesh }
-  >();
-  const hitTargets: THREE.Object3D[] = [];
-  const edges: Edge[] = [];
-  const edgeIndex = new Map<string, Hop>();
-  const packets: Packet[] = [];
+  const nodes = new Map<string, { anchor: THREE.Object3D; inner: HTMLElement }>();
+  const edges = new Map<string, Edge>();
+  const lineMaterials: LineMaterial[] = [];
   const glow = getGlowTexture();
 
-  let focus: string | null = null;
-  let hovered: string | null = null;
   let scenario: { hops: Hop[]; nodes: Set<string>; start: number } | null = null;
+  let targetYaw = BASE_YAW;
+  let dragYaw = 0;
+  let dragPitch = 0;
   let clock = 0;
-  const pointer = new THREE.Vector2(0, 0);
-  const pointerTarget = new THREE.Vector2(0, 0);
-  const raycaster = new THREE.Raycaster();
+  let ready = false;
 
-  const tracer = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glow, color: hubColor, transparent: true, blending, depthWrite: false }),
-  );
-  tracer.scale.setScalar(0.42);
-  tracer.visible = false;
+  // The tracer: a bright head and a fading trail.
+  const trail = Array.from({ length: TRAIL + 1 }, (_, i) => {
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: glow,
+        color: hubColor,
+        transparent: true,
+        opacity: i === 0 ? 1 : 0.55 * (1 - i / (TRAIL + 1)),
+        depthWrite: false,
+      }),
+    );
+    sprite.scale.setScalar(i === 0 ? 0.5 : 0.34 * (1 - i / (TRAIL + 2)));
+    sprite.visible = false;
+    return sprite;
+  });
 
-  const lit = (edge: Edge) => {
-    if (focus) return edge.from === focus || edge.to === focus;
-    if (scenario) return scenario.hops.some((hop) => hop.edge === edge);
-    return true;
+  const pointOnPath = (hops: Hop[], progress: number) => {
+    const index = Math.min(Math.floor(progress), hops.length - 1);
+    const t = THREE.MathUtils.clamp(progress - index, 0, 1);
+    const hop = hops[index];
+    return hop.edge.curve.getPoint(hop.forward ? t : 1 - t);
   };
 
   const stage = createStage(container, {
-    fov: 38,
+    fov: FOV,
     onResize: (width, height, camera) => {
       labels.setSize(width, height);
-      const aspect = width / height;
-      camera.position.z = aspect < 1.05 ? (11 / aspect) * 1.22 : 11;
+      for (const material of lineMaterials) material.resolution.set(width, height);
+      camera.position.set(0, 0, cameraZFor(width / height, options.compact));
+      camera.lookAt(0, 0, 0);
     },
-    onFrame: ({ time, delta }) => {
+    onFrame: ({ delta }) => {
       clock += delta;
 
-      // Rotation: slow drift, plus drag speed that fades after release.
-      const drift = stage.reducedMotion || hovered ? 0 : 0.11;
-      graph.rotation.y += (drift + drag.velocity.x) * delta;
-      graph.rotation.x = THREE.MathUtils.clamp(graph.rotation.x + drag.velocity.y * delta, -0.7, 0.7);
+      // Ease toward the scenario angle. Drag adds a small, bounded offset.
       if (!drag.active) {
         const decay = Math.exp(-delta * 3.5);
         drag.velocity.x *= decay;
         drag.velocity.y *= decay;
-        if (Math.abs(drag.velocity.x) + Math.abs(drag.velocity.y) > 0.001) stage.invalidate();
       }
+      dragYaw = THREE.MathUtils.clamp(dragYaw + drag.velocity.x * delta, -MAX_DRAG_YAW, MAX_DRAG_YAW);
+      dragPitch = THREE.MathUtils.clamp(dragPitch + drag.velocity.y * delta, -MAX_DRAG_PITCH, MAX_DRAG_PITCH);
+      const yaw = targetYaw + dragYaw;
+      const easing = stage.reducedMotion ? 1 : 1 - Math.exp(-delta * EASE_RATE);
+      graph.rotation.y += (yaw - graph.rotation.y) * easing;
+      graph.rotation.x += (BASE_PITCH + dragPitch - graph.rotation.x) * easing;
+      const settling =
+        Math.abs(yaw - graph.rotation.y) > 0.001 || Math.abs(drag.velocity.x) + Math.abs(drag.velocity.y) > 0.001;
+      if (settling) stage.invalidate();
 
-      // The camera leans a little toward the pointer.
-      pointer.lerp(pointerTarget, 1 - Math.exp(-delta * 4));
-      stage.camera.position.x = pointer.x * 0.7;
-      stage.camera.position.y = pointer.y * 0.45;
-      stage.camera.lookAt(0, 0, 0);
-
-      const hub = nodes.get('runneth');
-      if (hub && !stage.reducedMotion) {
-        const pulse = 1 + Math.sin(time * 2.2) * 0.12;
-        hub.glow.scale.setScalar(2.4 * pulse);
-      }
-
-      for (const packet of packets) {
-        if (stage.reducedMotion) {
-          packet.sprite.visible = false;
-          continue;
-        }
-        const t = (time * packet.speed + packet.offset) % 1;
-        packet.sprite.position.copy(packet.edge.curve.getPoint(packet.forward ? t : 1 - t));
-        const strength = lit(packet.edge) ? (scenario && !focus ? 0.45 : 0.95) : 0.12;
-        (packet.sprite.material as THREE.SpriteMaterial).opacity = strength * Math.sin(t * Math.PI);
-      }
-
-      // The tracer walks the scenario path one edge at a time, then pauses and repeats.
-      tracer.visible = false;
-      if (scenario && !focus && !stage.reducedMotion) {
+      // Dashes march along the active path, and the tracer runs it one edge at a time.
+      for (const sprite of trail) sprite.visible = false;
+      if (scenario && !stage.reducedMotion) {
+        for (const { edge, forward } of scenario.hops) edge.material.dashOffset -= (forward ? 1 : -1) * delta * 0.5;
         const total = scenario.hops.length * HOP + PAUSE;
-        const elapsed = (clock - scenario.start) % total;
-        const index = Math.floor(elapsed / HOP);
-        if (index < scenario.hops.length) {
-          const hop = scenario.hops[index];
-          const t = THREE.MathUtils.smoothstep((elapsed - index * HOP) / HOP, 0, 1);
-          tracer.position.copy(hop.edge.curve.getPoint(hop.forward ? t : 1 - t));
-          tracer.visible = true;
+        const progress = ((clock - scenario.start) % total) / HOP;
+        if (progress < scenario.hops.length) {
+          trail.forEach((sprite, i) => {
+            const behind = progress - i * TRAIL_GAP;
+            if (behind < 0) return;
+            sprite.position.copy(pointOnPath(scenario!.hops, behind));
+            sprite.visible = true;
+          });
         }
       }
 
-      // Labels farther from the camera fade back.
+      // Cards farther away shrink a little, so the 3D still reads.
       const world = new THREE.Vector3();
-      for (const { label, mesh } of nodes.values()) {
-        mesh.getWorldPosition(world);
-        const depth = THREE.MathUtils.mapLinear(world.z, -3.2, 3.2, 0.35, 1);
-        const on = label.element.dataset.active === 'true';
-        label.element.style.opacity = on ? '1' : String(THREE.MathUtils.clamp(depth, 0.3, 1));
+      for (const { anchor, inner } of nodes.values()) {
+        anchor.getWorldPosition(world);
+        const depth = THREE.MathUtils.clamp(THREE.MathUtils.mapLinear(world.z, -3.5, 3.5, 0.86, 1.04), 0.86, 1.04);
+        inner.style.setProperty('--depth', depth.toFixed(3));
       }
 
       labels.render(stage.scene, stage.camera);
+      if (!ready) {
+        ready = true;
+        options.onReady();
+      }
     },
   });
 
-  // Nodes, each with a glow, a label, and a larger invisible target for the pointer.
-  for (const node of mapNodes) {
-    const position = new THREE.Vector3(...POSITIONS[node.id]);
-    const color = nodeColor(node);
-    const radius = node.group === 'hub' ? 0.3 : 0.14;
-
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 32, 16), new THREE.MeshBasicMaterial({ color }));
-    mesh.position.copy(position);
-
-    const hubGlow = 0.3;
-    const nodeGlow = 0.18;
-    const glowSprite = new THREE.Sprite(
-      new THREE.SpriteMaterial({
-        map: glow,
-        color,
-        transparent: true,
-        opacity: node.group === 'hub' ? hubGlow : nodeGlow,
-        blending,
-        depthWrite: false,
-      }),
-    );
-    glowSprite.scale.setScalar(node.group === 'hub' ? 2.4 : 1.1);
-    mesh.add(glowSprite);
-
-    const hit = new THREE.Mesh(
-      new THREE.SphereGeometry(0.45, 12, 8),
-      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
-    );
-    hit.userData.id = node.id;
-    mesh.add(hit);
-    hitTargets.push(hit);
-
-    const element = document.createElement('div');
-    element.className = 'map-label';
-    element.dataset.group = node.group;
-    element.textContent = node.label;
-    const label = new CSS2DObject(element);
-    label.position.set(0, radius + 0.32, 0);
-    mesh.add(label);
-
-    graph.add(mesh);
-    nodes.set(node.id, { node, mesh, glow: glowSprite, label, hit });
-  }
-
-  // Curved links between nodes, each with two packets moving in opposite directions.
-  for (const [from, to] of mapEdges) {
-    const a = new THREE.Vector3(...POSITIONS[from]);
-    const b = new THREE.Vector3(...POSITIONS[to]);
-    const mid = a.clone().add(b).multiplyScalar(0.5);
-    const bend = mid.clone().normalize().multiplyScalar(0.5).add(new THREE.Vector3(0, 0.35, 0));
-    const curve = new THREE.QuadraticBezierCurve3(a, mid.add(bend), b);
-    const fromNode = nodes.get(from)!.node;
-    const toNode = nodes.get(to)!.node;
-    const accentNode = fromNode.group === 'hub' ? toNode : fromNode;
-    const baseColor = from === 'motion' && to === 'claude' ? nodeColor(fromNode) : lineColor.clone();
-    const material = new THREE.LineBasicMaterial({ color: baseColor, transparent: true, opacity: baseOpacity });
-    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(48)), material);
-    graph.add(line);
-    const edge: Edge = { from, to, curve, material, baseColor };
-    edges.push(edge);
-    edgeIndex.set(`${from}|${to}`, { edge, forward: true });
-    edgeIndex.set(`${to}|${from}`, { edge, forward: false });
-
-    for (const forward of [true, false]) {
-      const sprite = new THREE.Sprite(
-        new THREE.SpriteMaterial({
-          map: glow,
-          color: nodeColor(accentNode),
-          transparent: true,
-          blending,
-          depthWrite: false,
-        }),
-      );
-      sprite.scale.setScalar(0.24);
-      graph.add(sprite);
-      packets.push({ edge, sprite, offset: Math.random(), speed: 0.18 + Math.random() * 0.14, forward });
+  // A faint dot grid under the graph. Dots fade into the card color toward the edges.
+  const floor: number[] = [];
+  const floorColors: number[] = [];
+  const near = new THREE.Color('#c9c9c2');
+  const far = new THREE.Color('#ffffff');
+  for (let x = -9; x <= 9; x += 0.6) {
+    for (let z = -9; z <= 9; z += 0.6) {
+      const fade = THREE.MathUtils.clamp(Math.hypot(x, z) / 9, 0, 1);
+      if (fade >= 1) continue;
+      floor.push(x, -3.6, z);
+      const color = near.clone().lerp(far, fade * fade);
+      floorColors.push(color.r, color.g, color.b);
     }
   }
+  const floorGeometry = new THREE.BufferGeometry();
+  floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(floor, 3));
+  floorGeometry.setAttribute('color', new THREE.Float32BufferAttribute(floorColors, 3));
+  graph.add(new THREE.Points(floorGeometry, new THREE.PointsMaterial({ size: 0.07, vertexColors: true })));
 
-  // Several MCP servers around the MCP node.
-  const mcpCenter = new THREE.Vector3(...POSITIONS.mcp);
-  const mcpColor = new THREE.Color(PALETTE.tools);
-  for (let i = 0; i < 4; i++) {
-    const angle = (i / 4) * Math.PI * 2 + 0.4;
-    const offset = new THREE.Vector3(Math.cos(angle) * 0.75, Math.sin(angle) * 0.55, Math.sin(angle * 1.7) * 0.5);
-    const satellite = new THREE.Mesh(
-      new THREE.SphereGeometry(0.06, 16, 8),
-      new THREE.MeshBasicMaterial({ color: mcpColor }),
-    );
-    satellite.position.copy(mcpCenter).add(offset);
-    graph.add(satellite);
-    graph.add(
-      new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([mcpCenter, satellite.position]),
-        new THREE.LineBasicMaterial({ color: mcpColor, transparent: true, opacity: 0.35 }),
-      ),
-    );
+  for (const node of mapNodes) {
+    const anchor = new THREE.Object3D();
+    anchor.position.set(...POSITIONS[node.id]);
+    const element = document.createElement('div');
+    element.className = 'node';
+    element.innerHTML = nodeCardHTML(node);
+    anchor.add(new CSS2DObject(element));
+    graph.add(anchor);
+    nodes.set(node.id, { anchor, inner: element.firstElementChild as HTMLElement });
   }
 
-  // A cloud of small points for the business apps.
-  const appsCenter = new THREE.Vector3(...POSITIONS.apps);
-  const appColor = new THREE.Color(PALETTE.apps);
-  const cloud: THREE.Vector3[] = [];
-  for (let i = 0; i < 180; i++) {
-    const direction = new THREE.Vector3().randomDirection();
-    cloud.push(appsCenter.clone().add(direction.multiplyScalar(0.55 + Math.random() * 0.75)));
-  }
-  graph.add(
-    new THREE.Points(
-      new THREE.BufferGeometry().setFromPoints(cloud),
-      new THREE.PointsMaterial({ color: appColor, size: 0.05, transparent: true, opacity: 0.8, depthWrite: false }),
-    ),
-  );
-  const spokes: THREE.Vector3[] = [];
-  cloud.slice(0, 36).forEach((point) => spokes.push(appsCenter, point));
-  graph.add(
-    new THREE.LineSegments(
-      new THREE.BufferGeometry().setFromPoints(spokes),
-      new THREE.LineBasicMaterial({ color: appColor, transparent: true, opacity: 0.14 }),
-    ),
-  );
+  for (const [from, to] of mapEdges) {
+    const curve = edgeCurve(from, to);
+    const geometry = new LineGeometry();
+    geometry.setPositions(curve.getPoints(64).flatMap((point) => [point.x, point.y, point.z]));
+    const material = new LineMaterial({
+      color: restColor,
+      linewidth: LINE_WIDTH,
+      transparent: true,
+      opacity: 1,
+      dashSize: 0.16,
+      gapSize: 0.12,
+    });
+    lineMaterials.push(material);
+    const line = new Line2(geometry, material);
+    line.computeLineDistances();
+    graph.add(line);
 
-  graph.add(tracer);
+    edges.set(edgeKey(from, to), { from, to, curve, material });
+  }
+
+  trail.forEach((sprite) => graph.add(sprite));
   stage.scene.add(graph);
 
-  // A focused node wins over a scenario. Without either, every link shows at rest.
-  const applyHighlight = () => {
-    for (const { node, mesh, label } of nodes.values()) {
-      const on = focus ? node.id === focus : Boolean(scenario?.nodes.has(node.id));
-      mesh.scale.setScalar(focus && on ? 1.45 : on ? 1.2 : 1);
-      label.element.dataset.active = String(on);
-    }
-    for (const edge of edges) {
-      if (focus) {
-        const touches = edge.from === focus || edge.to === focus;
-        const other = nodes.get(edge.from === focus ? edge.to : edge.from)!.node;
-        const color = focus === 'runneth' ? nodeColor(other) : nodeColor(nodes.get(focus)!.node);
-        edge.material.color.copy(touches ? color : edge.baseColor);
-        edge.material.opacity = touches ? 0.95 : 0.12;
-      } else if (scenario) {
-        const onPath = lit(edge);
-        edge.material.color.copy(onPath ? hubColor : edge.baseColor);
-        edge.material.opacity = onPath ? 0.9 : 0.12;
-      } else {
-        edge.material.color.copy(edge.baseColor);
-        edge.material.opacity = baseOpacity;
-      }
-    }
-    stage.invalidate();
-  };
-
-  // Pointer: hover shows a node, a click without a drag selects it.
   const canvas = stage.renderer.domElement;
   const drag = createDrag(canvas, stage.invalidate);
 
-  const pick = (event: PointerEvent) => {
-    const rect = canvas.getBoundingClientRect();
-    const ndc = new THREE.Vector2(
-      ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      -((event.clientY - rect.top) / rect.height) * 2 + 1,
-    );
-    raycaster.setFromCamera(ndc, stage.camera);
-    const hit = raycaster.intersectObjects(hitTargets, false)[0];
-    return { ndc, id: (hit?.object.userData.id as string | undefined) ?? null };
-  };
-
-  const onMove = (event: PointerEvent) => {
-    const { ndc, id } = pick(event);
-    pointerTarget.copy(ndc);
-    if (!drag.active && id !== hovered) {
-      hovered = id;
-      canvas.style.cursor = id ? 'pointer' : '';
-      options.onHover(id);
+  const applyHighlight = () => {
+    for (const [id, { inner }] of nodes) {
+      inner.dataset.state = !scenario ? 'rest' : scenario.nodes.has(id) ? 'active' : 'dim';
     }
-    stage.invalidate();
-  };
-
-  const onLeave = () => {
-    pointerTarget.set(0, 0);
-    if (hovered) {
-      hovered = null;
-      options.onHover(null);
+    for (const edge of edges.values()) {
+      const onPath = Boolean(scenario?.hops.some((hop) => hop.edge === edge));
+      edge.material.color.copy(onPath ? hubColor : restColor);
+      edge.material.linewidth = onPath ? ACTIVE_WIDTH : LINE_WIDTH;
+      edge.material.opacity = !scenario || onPath ? 1 : 0.45;
+      edge.material.dashed = onPath;
     }
-    stage.invalidate();
   };
-
-  const onUp = (event: PointerEvent) => {
-    if (drag.moved) return;
-    options.onSelect(pick(event).id);
-  };
-
-  canvas.addEventListener('pointermove', onMove);
-  canvas.addEventListener('pointerleave', onLeave);
-  canvas.addEventListener('pointerup', onUp);
 
   return {
-    /** Highlights one node and its links. Null clears the focus. */
-    setActive(id: string | null) {
-      focus = id;
-      applyHighlight();
-    },
-    /** Plays a request path such as ['claude', 'motion', 'claude']. Null stops it. */
-    setScenario(path: string[] | null) {
-      if (!path) {
+    /** Plays one scenario's path and turns the camera toward it. Null returns to the rest state. */
+    setScenario(next: MapScenario | null) {
+      if (!next) {
         scenario = null;
+        targetYaw = BASE_YAW;
       } else {
         const hops: Hop[] = [];
-        for (let i = 0; i < path.length - 1; i++) {
-          const hop = edgeIndex.get(`${path[i]}|${path[i + 1]}`);
-          if (hop) hops.push(hop);
+        for (let i = 0; i < next.path.length - 1; i++) {
+          const [a, b] = [next.path[i], next.path[i + 1]];
+          const edge = edges.get(edgeKey(a, b));
+          if (edge) hops.push({ edge, forward: edge.from === a });
         }
-        scenario = { hops, nodes: new Set(path), start: clock };
+        scenario = { hops, nodes: new Set(next.path), start: clock };
+        targetYaw = BASE_YAW + THREE.MathUtils.degToRad(next.yaw);
       }
       applyHighlight();
+      // Render every frame only while a path animates.
+      stage.setContinuous(scenario !== null);
+      stage.invalidate();
     },
     dispose() {
-      canvas.removeEventListener('pointermove', onMove);
-      canvas.removeEventListener('pointerleave', onLeave);
-      canvas.removeEventListener('pointerup', onUp);
       drag.dispose();
       labels.domElement.remove();
       stage.dispose();
