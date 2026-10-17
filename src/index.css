@@ -72,12 +72,10 @@ body {
 }
 
 ::selection {
-  background: var(--hub);
-  color: #ffffff;
+  background: color-mix(in oklab, var(--hub) 30%, transparent);
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 4px;
 }

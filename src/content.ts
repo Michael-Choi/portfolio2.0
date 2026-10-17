@@ -67,7 +67,11 @@ export const edges: [string, string][] = [
   ['runneth', 'apps'],
 ];
 
-export const diagramCaption = 'How the pieces connect. Scroll or hover the projects to trace each path.';
+export const diagramCaption = 'How the pieces connect. Scroll, hover, or tap a project to trace its path.';
+
+/** What the diagram shows, for screen readers. Keep it in sync with the nodes and edges. */
+export const diagramLabel =
+  'Integration diagram. Claude, ChatGPT, other MCP clients, Slack, and Runneth chat connect to Runneth. Runneth reaches Motion data, remote MCP servers, and business apps. Claude, ChatGPT, and other MCP clients also reach Motion data directly through the Motion MCP server.';
 
 /** Every way into Runneth, and every system it reaches. Sign-in guards all of them. */
 const intoRunneth = edges.filter(([, to]) => to === 'runneth').map(([from, to]) => `${from}-${to}`);

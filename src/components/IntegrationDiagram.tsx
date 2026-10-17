@@ -56,7 +56,7 @@ const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State
       {node.logo ? (
         <img src={node.logo} alt="" className={`shrink-0 rounded-lg ${size}`} />
       ) : (
-        <span aria-hidden="true" className={`grid shrink-0 place-items-center rounded-lg text-white ${FILL[node.group]} ${size}`}>
+        <span aria-hidden="true" className={`grid shrink-0 place-items-center rounded-lg text-card ${FILL[node.group]} ${size}`}>
           <svg
             viewBox="0 0 24 24"
             className={hub ? 'size-[18px]' : 'size-4'}
@@ -89,7 +89,7 @@ const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State
 };
 
 /** The integrations around Runneth. Highlights the edges in `active` for the current project. */
-export const IntegrationDiagram = ({ active, caption }: { active: string[] | null; caption?: string }) => {
+export const IntegrationDiagram = ({ active, caption, label }: { active: string[] | null; caption?: string; label: string }) => {
   const box = useRef<HTMLDivElement>(null);
   const [boxes, setBoxes] = useState<Record<string, Box>>({});
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -145,7 +145,7 @@ export const IntegrationDiagram = ({ active, caption }: { active: string[] | nul
   const column = (side: MapNode['side']) => nodes.filter((node) => node.side === side);
 
   return (
-    <figure>
+    <figure aria-label={label}>
       <div
         ref={box}
         className="relative rounded-3xl border border-line bg-card px-3 py-5 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-28px_rgb(0_0_0/0.25)] sm:px-7 sm:py-7"

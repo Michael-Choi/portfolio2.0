@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowIcon } from '@/components/Icons';
 import { IntegrationDiagram } from '@/components/IntegrationDiagram';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { diagramCaption, intro, previously, profile, work, workYear, type Rich, type WorkItem } from '@/content';
+import { diagramCaption, diagramLabel, intro, previously, profile, work, workYear, type Rich, type WorkItem } from '@/content';
 import { useMediaQuery } from '@/useMediaQuery';
 
 const Heading = ({ children }: { children: ReactNode }) => (
@@ -26,7 +26,7 @@ const RichText = ({ parts }: { parts: Rich }) => (
       typeof part === 'string' ? (
         part
       ) : (
-        <External key={index} href={part.href} className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink">
+        <External key={index} href={part.href} className="text-ink underline decoration-muted/60 underline-offset-4 hover:decoration-ink">
           {part.text}
         </External>
       ),
@@ -35,7 +35,7 @@ const RichText = ({ parts }: { parts: Rich }) => (
 );
 
 const rowClass =
-  'group -mx-3 flex items-baseline justify-between gap-6 rounded-xl px-3 py-3 transition-colors hover:bg-ink/[0.035]';
+  'group -mx-3 flex items-baseline justify-between gap-6 rounded-xl px-3 py-3 transition-colors hover:bg-ink/[0.05]';
 
 const WorkRow = ({ item, active }: { item: WorkItem; active: boolean }) => {
   const body = (
@@ -51,7 +51,7 @@ const WorkRow = ({ item, active }: { item: WorkItem; active: boolean }) => {
       </span>
     </>
   );
-  const className = `${rowClass} ${active ? 'bg-ink/[0.035]' : ''}`;
+  const className = `${rowClass} ${active ? 'bg-ink/[0.05]' : ''}`;
   return item.href ? (
     <External href={item.href} className={className}>
       {body}
@@ -132,7 +132,9 @@ export default function App() {
         <div>
           <h1 className="font-medium">{profile.name}</h1>
           <p className="text-muted">
-            {profile.role} · {profile.location}
+            {profile.role}
+            <span className="max-sm:hidden"> · </span>
+            <span className="max-sm:block">{profile.location}</span>
           </p>
         </div>
         <ThemeToggle />
@@ -161,7 +163,7 @@ export default function App() {
             pinned && !wide ? 'shadow-[0_1px_0_var(--line)]' : ''
           }`}
         >
-          <IntegrationDiagram active={active} caption={wide ? diagramCaption : undefined} />
+          <IntegrationDiagram active={active} caption={wide ? diagramCaption : undefined} label={diagramLabel} />
         </div>
         {/* In one column, the caption sits outside the pinned block, so it scrolls away. */}
         {!wide && <p className="mb-10 text-sm text-muted">{diagramCaption}</p>}
@@ -214,16 +216,16 @@ export default function App() {
           <span id="contact-title">Get in touch</span>
         </Heading>
         <p className="flex flex-wrap gap-x-6 gap-y-2">
-          <a href={`mailto:${profile.email}`} className="font-medium underline decoration-line underline-offset-4 hover:decoration-ink">
+          <a href={`mailto:${profile.email}`} className="font-medium underline decoration-muted/60 underline-offset-4 hover:decoration-ink">
             {profile.email}
           </a>
-          <External href={profile.linkedin} className="underline decoration-line underline-offset-4 hover:decoration-ink">
+          <External href={profile.linkedin} className="underline decoration-muted/60 underline-offset-4 hover:decoration-ink">
             LinkedIn
           </External>
-          <External href={profile.x} className="underline decoration-line underline-offset-4 hover:decoration-ink">
+          <External href={profile.x} className="underline decoration-muted/60 underline-offset-4 hover:decoration-ink">
             X
           </External>
-          <External href={profile.github} className="underline decoration-line underline-offset-4 hover:decoration-ink">
+          <External href={profile.github} className="underline decoration-muted/60 underline-offset-4 hover:decoration-ink">
             GitHub
           </External>
         </p>
