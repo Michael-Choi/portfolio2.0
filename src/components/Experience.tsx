@@ -1,105 +1,39 @@
-import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { experience } from '@/content';
+import { Section } from './Section';
 
 export const Experience = () => (
-  <section id="experience" className="py-20 bg-muted/30">
-    <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold mb-12 text-center">Experience</h2>
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>Technical Lead/Engineering Manager</CardTitle>
-                  <CardDescription className="text-base">
-                    TravelBank Inc. • 2022 - Present (Acquired By U.S. Bank)
-                  </CardDescription>
-                </div>
-                <Badge>Current</Badge>
+  <Section
+    id="experience"
+    index="04 — Experience"
+    title="Where I have worked"
+    intro="Seven years of production software. TravelBank and BrokerBay were both acquired."
+  >
+    <div className="space-y-14">
+      {experience.map((job) => (
+        <article key={job.company}>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-3">
+            <h3 className="font-serif text-3xl">{job.company}</h3>
+            {job.note && <span className="font-mono text-xs text-muted">{job.note}</span>}
+          </div>
+          <p className="mt-3 text-muted">{job.summary}</p>
+          <div className="mt-6 space-y-8">
+            {job.roles.map((role) => (
+              <div key={role.title} className="grid gap-2 md:grid-cols-[1fr_auto] md:gap-x-6">
+                <h4 className="font-medium">{role.title}</h4>
+                <p className="font-mono text-xs text-muted md:pt-1 md:text-right">{role.dates}</p>
+                <ul className="mt-1 space-y-2 md:col-span-2">
+                  {role.points.map((point) => (
+                    <li key={point} className="relative pl-5 text-pretty leading-relaxed text-muted">
+                      <span aria-hidden="true" className="absolute left-0 top-[0.7em] h-px w-2.5 bg-muted/60" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li>
-                  Built and manage a reliable booking platform integrating with
-                  multiple external reservation systems
-                </li>
-                <li>
-                  Designed a fault-tolerant architecture with 99.99% uptime for
-                  critical booking services
-                </li>
-                <li>
-                  Optimized MongoDB performance by applying cursor-based
-                  pagination, indexing, reducing query times by 40%
-                </li>
-                <li>
-                  Spearheaded the Global Distribution System migration from
-                  Apollo to Galileo, enhancing travel features and system
-                  performance
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Full Stack Software Engineer</CardTitle>
-              <CardDescription className="text-base">
-                TravelBank Inc. • 2021 - 2022 (Acquired By U.S. Bank)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li>
-                  Automated hotel passive booking processes, saving travel
-                  agents 500+ hours monthly
-                </li>
-                <li>
-                  Reduced DataDog expenses by $500K annually through targeted
-                  exclusion filters
-                </li>
-                <li>
-                  Upgraded old hotel XML API to a modern REST API while
-                  maintaining backward compatibility
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Full Stack Software Engineer</CardTitle>
-              <CardDescription className="text-base">
-                BrokerBay • 2019 - 2021 (Acquired By Carrier)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li>
-                  Architected job scheduling system using GCP PubSub with
-                  leader/worker pattern supporting horizontal scaling
-                </li>
-                <li>
-                  Developed WebRTC virtual tour feature enabling real estate
-                  agents to host property showings during COVID-19
-                </li>
-                <li>
-                  Refactored multiple 2000+ line AngularJS pages to React,
-                  significantly improving maintainability and development
-                  velocity
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            ))}
+          </div>
+        </article>
+      ))}
     </div>
-  </section>
+  </Section>
 );

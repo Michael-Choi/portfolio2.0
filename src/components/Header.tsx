@@ -1,79 +1,35 @@
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
-export const Header = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+const nav = [
+  { href: '#work', label: 'Work' },
+  { href: '#timeline', label: '2026' },
+  { href: '#experience', label: 'Experience' },
+  { href: '#contact', label: 'Contact' },
+];
 
-  return (
-    <header className="border-b">
-      <div className="container mx-auto px-4 py-4">
-        <nav className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Michael Choi</h1>
-          {/* Desktop nav */}
-          <div className="hidden md:flex gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <a href="#about">About</a>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <a href="#experience">Experience</a>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <a href="#projects">Projects</a>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <a href="#contact">Contact</a>
-            </Button>
-          </div>
-          {/* Mobile nav */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Toggle menu"
-            >
-              {menuOpen ? <X /> : <Menu />}
-            </Button>
-            {menuOpen && (
-              <div className="absolute top-16 right-4 bg-background rounded-lg shadow-lg flex flex-col gap-2 p-4 z-50 min-w-[150px] border">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <a href="#about">About</a>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <a href="#experience">Experience</a>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <a href="#projects">Projects</a>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <a href="#contact">Contact</a>
-                </Button>
-              </div>
-            )}
-          </div>
-        </nav>
-      </div>
-    </header>
-  );
-};
+export const Header = () => (
+  <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/80 backdrop-blur-md">
+    <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+      <a href="#top" className="flex items-center gap-3" aria-label="Michael Choi, back to top">
+        <span className="grid size-8 place-items-center rounded-[6px] border-2 border-muted/50 bg-sage/40 font-mono text-[13px] font-medium tracking-tight text-ink">
+          Mc
+        </span>
+        <span className="hidden text-sm font-medium sm:inline">Michael Choi</span>
+      </a>
+      <nav aria-label="Sections" className="flex items-center gap-1">
+        {nav.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className={`rounded-full px-3 py-1.5 text-sm text-muted transition-colors hover:bg-line/60 hover:text-ink ${
+              item.href === '#contact' ? '' : 'hidden md:inline-block'
+            }`}
+          >
+            {item.label}
+          </a>
+        ))}
+        <ThemeToggle />
+      </nav>
+    </div>
+  </header>
+);

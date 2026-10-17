@@ -1,34 +1,43 @@
-import { Button } from '@/components/ui/button';
-import { Mail, Linkedin } from 'lucide-react';
+import { profile } from '@/content';
+import { ArrowIcon, GitHubIcon, LinkedInIcon, MailIcon } from './Icons';
+
+const links = [
+  { href: `mailto:${profile.email}`, label: profile.email, Icon: MailIcon, external: false },
+  { href: profile.linkedin, label: 'linkedin.com/in/michael-b-choi', Icon: LinkedInIcon, external: true },
+  { href: profile.github, label: 'github.com/Michael-Choi', Icon: GitHubIcon, external: true },
+];
 
 export const Contact = () => (
-  <section id="contact" className="py-20 bg-muted/30">
-    <div className="container mx-auto px-4">
-      <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-8">Let's Work Together</h2>
-        <p className="text-lg text-muted-foreground mb-8">
-          I'm always interested in discussing new opportunities, technical
-          challenges, or just connecting with fellow engineers and leaders.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" asChild>
-            <a href="mailto:michael@michaelchoi.ca">
-              <Mail className="h-5 w-5 mr-2" />
-              Send Email
-            </a>
-          </Button>
-          <Button size="lg" variant="outline" asChild>
+  <section id="contact" aria-labelledby="contact-title" className="scroll-mt-16 border-t border-line">
+    <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-32">
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">06 — Contact</p>
+      <h2
+        id="contact-title"
+        className="mt-4 max-w-4xl text-balance font-serif text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.98] tracking-[-0.015em]"
+      >
+        Let’s talk about agents that work in production.
+      </h2>
+      <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted">
+        I am happy to talk about agent infrastructure, production reliability, or building software with
+        coding agents.
+      </p>
+      <ul className="mt-10 divide-y divide-line border-y border-line">
+        {links.map(({ href, label, Icon, external }) => (
+          <li key={href}>
             <a
-              href="https://www.linkedin.com/in/michael-b-choi/"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={href}
+              {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              className="group flex items-center justify-between gap-4 py-5 transition-colors hover:text-accent"
             >
-              <Linkedin className="h-5 w-5 mr-2" />
-              Connect on LinkedIn
+              <span className="flex min-w-0 items-center gap-4">
+                <Icon className="size-5 shrink-0 text-muted transition-colors group-hover:text-accent" />
+                <span className="truncate text-lg md:text-xl">{label}</span>
+              </span>
+              <ArrowIcon className="size-5 shrink-0 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
             </a>
-          </Button>
-        </div>
-      </div>
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 );

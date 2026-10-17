@@ -1,14 +1,10 @@
-import { Socials } from './Socials';
+import { profile } from '@/content';
 
 export const Footer = () => (
-  <footer className="border-t py-8">
-    <div className="container mx-auto px-4">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-muted-foreground">© 2024 Michael Choi.</p>
-        <div className="flex gap-4">
-          <Socials />
-        </div>
-      </div>
+  <footer className="border-t border-line">
+    <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 font-mono text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <p>© {new Date().getFullYear()} {profile.name}</p>
+      <p>{profile.location}</p>
     </div>
   </footer>
 );
