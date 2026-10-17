@@ -1,15 +1,29 @@
 import { useEffect } from 'react';
 import { Contact } from '@/components/Contact';
 import { Experience } from '@/components/Experience';
-import { Focus } from '@/components/Focus';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
-import { Hero } from '@/components/Hero';
+import { HeroConstellation } from '@/components/HeroConstellation';
+import { HeroGlobe } from '@/components/HeroGlobe';
+import { HeroPaper } from '@/components/HeroPaper';
+import { LookPicker } from '@/components/LookPicker';
 import { Principles } from '@/components/Principles';
+import { Stats } from '@/components/Stats';
 import { Timeline } from '@/components/Timeline';
 import { Work } from '@/components/Work';
+import { readLook } from '@/look';
+
+const look = readLook();
+
+const heroes = {
+  constellation: HeroConstellation,
+  globe: HeroGlobe,
+  paper: HeroPaper,
+};
 
 export default function App() {
+  const Hero = heroes[look];
+
   // The sections render after the browser handles the URL hash, so a shared
   // link such as /#work scrolls to its section here.
   useEffect(() => {
@@ -20,15 +34,15 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <a
-        href="#focus"
+        href="#work"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-paper"
       >
         Skip to content
       </a>
-      <Header />
+      <Header themeToggle={look === 'paper'} />
       <main>
         <Hero />
-        <Focus />
+        <Stats />
         <Work />
         <Timeline />
         <Experience />
@@ -36,6 +50,7 @@ export default function App() {
         <Contact />
       </main>
       <Footer />
+      <LookPicker current={look} />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { Section } from './Section';
 export const Timeline = () => (
   <Section
     id="timeline"
-    index="03 — 2026"
+    index="02 — 2026"
     title="A year at Motion, month by month"
     intro="Four months on infrastructure, then the move to the Runneth AI team in May."
   >
@@ -27,7 +27,7 @@ export const Timeline = () => (
                 {entry.milestone}
               </p>
             )}
-            <h3 className="font-serif text-2xl leading-tight">{entry.title}</h3>
+            <h3 className="font-display text-2xl leading-tight">{entry.title}</h3>
             <p className="mt-1.5 max-w-xl text-pretty leading-relaxed text-muted">{entry.body}</p>
           </div>
         </li>

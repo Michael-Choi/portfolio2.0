@@ -1,39 +1,45 @@
-import { featuredWork, work } from '@/content';
+import { integrationWork, productWork, type Feature } from '@/content';
 import { Section } from './Section';
 
-const steps = [
-  { label: 'Problem', key: 'problem' },
-  { label: 'What I did', key: 'action' },
-  { label: 'Result', key: 'result' },
-] as const;
+const FeatureCard = ({ feature, large = false }: { feature: Feature; large?: boolean }) => (
+  <article className="flex flex-col rounded-2xl border border-line bg-card p-6 md:p-7">
+    <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em]">
+      <span className="text-accent">{feature.tag}</span>
+      <span className="text-muted">{feature.shipped}</span>
+    </div>
+    <h3 className={`mt-4 font-display leading-tight ${large ? 'text-3xl md:text-[2.1rem]' : 'text-2xl'}`}>
+      {feature.title}
+    </h3>
+    <p className="mt-3 text-pretty leading-relaxed text-muted">{feature.body}</p>
+    <p className="mt-auto flex gap-3 border-t border-line pt-4 text-pretty text-sm leading-relaxed [&:not(:first-child)]:mt-6">
+      <span aria-hidden="true" className="mt-[0.45em] size-1.5 shrink-0 rounded-full bg-accent" />
+      <span>
+        <span className="sr-only">Impact: </span>
+        {feature.impact}
+      </span>
+    </p>
+  </article>
+);
 
 export const Work = () => (
   <Section
     id="work"
-    index="02 — Selected work"
-    title="Agents that keep going"
-    intro="A few problems I solved at Motion, first on the core platform and then on Runneth."
+    index="01 — What I shipped"
+    title="Features in production"
+    intro="All of this is in production at Motion. Most of it answers one question: how does an AI agent reach the tools and data that people already use?"
+    wide
   >
-    <article className="rounded-2xl border border-line bg-card p-6 md:p-8">
-      <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">{featuredWork.tag}</p>
-      <h3 className="mt-3 text-balance font-serif text-3xl leading-tight md:text-4xl">{featuredWork.title}</h3>
-      <dl className="mt-8 divide-y divide-line border-t border-line">
-        {steps.map((step) => (
-          <div key={step.key} className="grid gap-2 py-5 last:pb-0 md:grid-cols-[8rem_1fr] md:gap-6">
-            <dt className="font-mono text-xs uppercase tracking-[0.14em] text-muted md:pt-1">{step.label}</dt>
-            <dd className="max-w-prose text-pretty leading-relaxed">{featuredWork[step.key]}</dd>
-          </div>
-        ))}
-      </dl>
-    </article>
+    <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-muted">MCP & integrations</h3>
+    <div className="mt-4 grid gap-4 md:grid-cols-2">
+      {integrationWork.map((feature) => (
+        <FeatureCard key={feature.title} feature={feature} large />
+      ))}
+    </div>
 
-    <div className="mt-12 grid gap-x-10 gap-y-12 sm:grid-cols-2">
-      {work.map((item) => (
-        <article key={item.title} className="border-t border-line pt-5">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">{item.tag}</p>
-          <h3 className="mt-2 font-serif text-2xl leading-tight md:text-[1.7rem]">{item.title}</h3>
-          <p className="mt-3 text-pretty leading-relaxed text-muted">{item.body}</p>
-        </article>
+    <h3 className="mt-14 font-mono text-xs uppercase tracking-[0.18em] text-muted">Agent features</h3>
+    <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {productWork.map((feature) => (
+        <FeatureCard key={feature.title} feature={feature} />
       ))}
     </div>
   </Section>

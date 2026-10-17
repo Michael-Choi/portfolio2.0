@@ -10,16 +10,15 @@ const links = [
 export const Contact = () => (
   <section id="contact" aria-labelledby="contact-title" className="scroll-mt-16 border-t border-line">
     <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-32">
-      <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">06 — Contact</p>
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">05 — Contact</p>
       <h2
         id="contact-title"
-        className="mt-4 max-w-4xl text-balance font-serif text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.98] tracking-[-0.015em]"
+        className="mt-4 max-w-4xl text-balance font-display text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.98] tracking-[-0.015em]"
       >
-        Let’s talk about agents that work in production.
+        Let’s connect your agent to everything.
       </h2>
       <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted">
-        I am happy to talk about agent infrastructure, production reliability, or building software with
-        coding agents.
+        I am happy to talk about MCP, agent integrations, or shipping AI features to production.
       </p>
       <ul className="mt-10 divide-y divide-line border-y border-line">
         {links.map(({ href, label, Icon, external }) => (

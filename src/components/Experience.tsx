@@ -4,7 +4,7 @@ import { Section } from './Section';
 export const Experience = () => (
   <Section
     id="experience"
-    index="04 — Experience"
+    index="03 — Experience"
     title="Where I have worked"
     intro="Seven years of production software. TravelBank and BrokerBay were both acquired."
   >
@@ -12,7 +12,7 @@ export const Experience = () => (
       {experience.map((job) => (
         <article key={job.company}>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-3">
-            <h3 className="font-serif text-3xl">{job.company}</h3>
+            <h3 className="font-display text-3xl">{job.company}</h3>
             {job.note && <span className="font-mono text-xs text-muted">{job.note}</span>}
           </div>
           <p className="mt-3 text-muted">{job.summary}</p>

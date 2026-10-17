@@ -24,11 +24,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@500;600&display=swap"
       rel="stylesheet"
     />
     <script>
-      // Apply a saved theme before first paint, so the page does not flash.
+      // Apply the design option and a saved theme before first paint, so the page does not flash.
+      const look = new URLSearchParams(location.search).get('look');
+      document.documentElement.dataset.look = ['constellation', 'globe', 'paper'].includes(look) ? look : 'constellation';
       try {
         const theme = localStorage.getItem('theme');
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
