@@ -3,39 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Michael Choi · Senior Software Engineer, AI agents & infrastructure</title>
+    <title>Michael Choi · Senior Software Engineer, AI agents & integrations</title>
     <meta
       name="description"
-      content="Michael Choi builds the software that lets AI agents do real work, and keeps them working when something breaks. Senior Software Engineer on Runneth at Motion."
+      content="Michael Choi ships the integrations that connect AI agents to the tools people already use: the Motion MCP server, the Runneth MCP server, and MCP and app connections for Runneth at Motion."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://michaelchoi.ca/" />
-    <meta property="og:title" content="Michael Choi · AI agents & infrastructure" />
+    <meta property="og:title" content="Michael Choi · AI agents & integrations" />
     <meta
       property="og:description"
-      content="I build the software that lets AI agents do real work, and keeps them working when something breaks."
+      content="I ship the integrations that connect AI agents to the tools people already use."
     />
     <meta name="twitter:card" content="summary" />
-    <meta name="theme-color" content="#eef0ea" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#131511" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f6f3" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/M.png" />
     <link rel="apple-touch-icon" href="/M.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Inter+Tight:wght@500;600&display=swap"
       rel="stylesheet"
     />
-    <script>
-      // Apply the design option and a saved theme before first paint, so the page does not flash.
-      const look = new URLSearchParams(location.search).get('look');
-      document.documentElement.dataset.look = ['constellation', 'clean', 'paper'].includes(look) ? look : 'clean';
-      try {
-        const theme = localStorage.getItem('theme');
-        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-      } catch {}
-    </script>
   </head>
   <body>
     <div id="root"></div>

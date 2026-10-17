@@ -14,18 +14,19 @@ const POSITIONS: Record<string, [number, number, number]> = {
   apps: [2.7, -1.5, -0.7],
 };
 
-type Palette = Record<Exclude<MapNode['group'], 'hub'>, string>;
-
-const DARK: Palette = { surface: '#8ab4ff', data: '#f4c56a', tools: '#c4a1ff', apps: '#ff9f80' };
-const LIGHT: Palette = { surface: '#2f6fdf', data: '#c7860f', tools: '#7c4ddb', apps: '#0c9a8f' };
+// The hub uses the page accent. These colors keep enough contrast on a light page.
+const PALETTE: Record<Exclude<MapNode['group'], 'hub'>, string> = {
+  surface: '#2f6fdf',
+  data: '#c7860f',
+  tools: '#7c4ddb',
+  apps: '#0c9a8f',
+};
 
 /** Seconds for the tracer to cross one edge, and the pause before a scenario repeats. */
 const HOP = 0.95;
 const PAUSE = 1.1;
 
 type Options = {
-  /** Light pages need normal blending and darker colors; additive glows vanish on white. */
-  light: boolean;
   onHover: (id: string | null) => void;
   onSelect: (id: string | null) => void;
 };
@@ -42,13 +43,13 @@ type Packet = { edge: Edge; sprite: THREE.Sprite; offset: number; speed: number;
 
 type Hop = { edge: Edge; forward: boolean };
 
-export function mountConstellation(container: HTMLElement, options: Options) {
-  const palette = options.light ? LIGHT : DARK;
-  const hubColor = readColor('--accent', options.light ? '#f0532a' : '#6ff0c0');
-  const lineColor = readColor('--muted', '#8b97a4');
-  const blending = options.light ? THREE.NormalBlending : THREE.AdditiveBlending;
-  const baseOpacity = options.light ? 0.32 : 0.4;
-  const nodeColor = (node: MapNode) => (node.group === 'hub' ? hubColor.clone() : new THREE.Color(palette[node.group]));
+export function mountIntegrationMap(container: HTMLElement, options: Options) {
+  const hubColor = readColor('--accent', '#f0532a');
+  const lineColor = readColor('--muted', '#5b616b');
+  // Additive glows vanish on a light page, so sprites use normal blending.
+  const blending = THREE.NormalBlending;
+  const baseOpacity = 0.32;
+  const nodeColor = (node: MapNode) => (node.group === 'hub' ? hubColor.clone() : new THREE.Color(PALETTE[node.group]));
 
   const labels = new CSS2DRenderer();
   labels.domElement.style.position = 'absolute';
@@ -82,7 +83,7 @@ export function mountConstellation(container: HTMLElement, options: Options) {
   const tracer = new THREE.Sprite(
     new THREE.SpriteMaterial({ map: glow, color: hubColor, transparent: true, blending, depthWrite: false }),
   );
-  tracer.scale.setScalar(options.light ? 0.42 : 0.55);
+  tracer.scale.setScalar(0.42);
   tracer.visible = false;
 
   const lit = (edge: Edge) => {
@@ -171,8 +172,8 @@ export function mountConstellation(container: HTMLElement, options: Options) {
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 32, 16), new THREE.MeshBasicMaterial({ color }));
     mesh.position.copy(position);
 
-    const hubGlow = options.light ? 0.3 : 0.55;
-    const nodeGlow = options.light ? 0.18 : 0.4;
+    const hubGlow = 0.3;
+    const nodeGlow = 0.18;
     const glowSprite = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: glow,
@@ -235,7 +236,7 @@ export function mountConstellation(container: HTMLElement, options: Options) {
           depthWrite: false,
         }),
       );
-      sprite.scale.setScalar(options.light ? 0.24 : 0.32);
+      sprite.scale.setScalar(0.24);
       graph.add(sprite);
       packets.push({ edge, sprite, offset: Math.random(), speed: 0.18 + Math.random() * 0.14, forward });
     }
@@ -243,7 +244,7 @@ export function mountConstellation(container: HTMLElement, options: Options) {
 
   // Several MCP servers around the MCP node.
   const mcpCenter = new THREE.Vector3(...POSITIONS.mcp);
-  const mcpColor = new THREE.Color(palette.tools);
+  const mcpColor = new THREE.Color(PALETTE.tools);
   for (let i = 0; i < 4; i++) {
     const angle = (i / 4) * Math.PI * 2 + 0.4;
     const offset = new THREE.Vector3(Math.cos(angle) * 0.75, Math.sin(angle) * 0.55, Math.sin(angle * 1.7) * 0.5);
@@ -263,7 +264,7 @@ export function mountConstellation(container: HTMLElement, options: Options) {
 
   // A cloud of small points for the business apps.
   const appsCenter = new THREE.Vector3(...POSITIONS.apps);
-  const appColor = new THREE.Color(palette.apps);
+  const appColor = new THREE.Color(PALETTE.apps);
   const cloud: THREE.Vector3[] = [];
   for (let i = 0; i < 180; i++) {
     const direction = new THREE.Vector3().randomDirection();

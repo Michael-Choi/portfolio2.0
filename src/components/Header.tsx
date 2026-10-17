@@ -1,5 +1,3 @@
-import { ThemeToggle } from './ThemeToggle';
-
 const nav = [
   { href: '#work', label: 'Work' },
   { href: '#timeline', label: '2026' },
@@ -7,7 +5,7 @@ const nav = [
   { href: '#contact', label: 'Contact' },
 ];
 
-export const Header = ({ themeToggle }: { themeToggle: boolean }) => (
+export const Header = () => (
   <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/80 backdrop-blur-md">
     <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
       <a href="#top" className="flex items-center gap-3" aria-label="Michael Choi, back to top">
@@ -28,7 +26,6 @@ export const Header = ({ themeToggle }: { themeToggle: boolean }) => (
             {item.label}
           </a>
         ))}
-        {themeToggle && <ThemeToggle />}
       </nav>
     </div>
   </header>

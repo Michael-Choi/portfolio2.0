@@ -3,27 +3,13 @@ import { Contact } from '@/components/Contact';
 import { Experience } from '@/components/Experience';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
-import { HeroConstellation } from '@/components/HeroConstellation';
-import { HeroClean } from '@/components/HeroClean';
-import { HeroPaper } from '@/components/HeroPaper';
-import { LookPicker } from '@/components/LookPicker';
+import { Hero } from '@/components/Hero';
 import { Principles } from '@/components/Principles';
 import { Stats } from '@/components/Stats';
 import { Timeline } from '@/components/Timeline';
 import { Work } from '@/components/Work';
-import { readLook } from '@/look';
-
-const look = readLook();
-
-const heroes = {
-  constellation: HeroConstellation,
-  clean: HeroClean,
-  paper: HeroPaper,
-};
 
 export default function App() {
-  const Hero = heroes[look];
-
   // The sections render after the browser handles the URL hash, so a shared
   // link such as /#work scrolls to its section here.
   useEffect(() => {
@@ -39,7 +25,7 @@ export default function App() {
       >
         Skip to content
       </a>
-      <Header themeToggle={look === 'paper'} />
+      <Header />
       <main>
         <Hero />
         <Stats />
@@ -50,7 +36,6 @@ export default function App() {
         <Contact />
       </main>
       <Footer />
-      <LookPicker current={look} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { mapNodes, mapScenarios } from '@/content';
-import { webglAvailable } from '@/look';
+import { webglAvailable } from '@/webgl';
 
 type MapApi = {
   setActive: (id: string | null) => void;
@@ -11,14 +11,7 @@ type MapApi = {
 /** How long each scenario plays before the map moves to the next one. */
 const AUTOPLAY_MS = 8000;
 
-type IntegrationMapProps = {
-  /** Light pages get darker node colors and normal blending. */
-  light?: boolean;
-  /** Draws the map inside a card, like a product screenshot. */
-  framed?: boolean;
-};
-
-export const IntegrationMap = ({ light = false, framed = false }: IntegrationMapProps) => {
+export const IntegrationMap = () => {
   const container = useRef<HTMLDivElement>(null);
   const api = useRef<MapApi | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -43,9 +36,9 @@ export const IntegrationMap = ({ light = false, framed = false }: IntegrationMap
   useEffect(() => {
     if (!supported || !container.current) return;
     let cancelled = false;
-    import('@/three/constellation').then(({ mountConstellation }) => {
+    import('@/three/integrationMap').then(({ mountIntegrationMap }) => {
       if (cancelled || !container.current) return;
-      api.current = mountConstellation(container.current, { light, onHover: setHovered, onSelect: setSelected });
+      api.current = mountIntegrationMap(container.current, { onHover: setHovered, onSelect: setSelected });
       api.current.setScenario(state.current.path);
       api.current.setActive(state.current.activeNode);
     });
@@ -54,7 +47,7 @@ export const IntegrationMap = ({ light = false, framed = false }: IntegrationMap
       api.current?.dispose();
       api.current = null;
     };
-  }, [supported, light]);
+  }, [supported]);
 
   useEffect(() => {
     api.current?.setActive(activeNode);
@@ -81,16 +74,9 @@ export const IntegrationMap = ({ light = false, framed = false }: IntegrationMap
   };
 
   return (
-    <div
-      className={
-        framed
-          ? 'overflow-hidden rounded-3xl border border-line bg-card shadow-[0_30px_80px_-40px_rgba(12,13,16,0.35)]'
-          : ''
-      }
-    >
-      <div
-        className={`flex flex-wrap items-center gap-2 ${framed ? 'border-b border-line px-4 py-3 sm:px-5' : 'mb-2'}`}
-      >
+    // The map sits in a card, like a product screenshot.
+    <div className="overflow-hidden rounded-3xl border border-line bg-card shadow-[0_30px_80px_-40px_rgba(12,13,16,0.35)]">
+      <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3 sm:px-5">
         {mapScenarios.map((item, index) => (
           <button
             key={item.id}
@@ -118,9 +104,7 @@ export const IntegrationMap = ({ light = false, framed = false }: IntegrationMap
         )}
         <div
           aria-live="polite"
-          className={`pointer-events-none max-w-sm rounded-xl border border-line bg-card/90 p-4 backdrop-blur-md ${
-            framed ? 'm-4 sm:absolute sm:bottom-0 sm:left-0' : 'mt-3 sm:absolute sm:bottom-0 sm:left-0 sm:mt-0'
-          }`}
+          className="pointer-events-none m-4 max-w-sm rounded-xl border border-line bg-card/90 p-4 backdrop-blur-md sm:absolute sm:bottom-0 sm:left-0"
         >
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">{card.eyebrow}</p>
           <p className="mt-1.5 font-medium">{card.title}</p>

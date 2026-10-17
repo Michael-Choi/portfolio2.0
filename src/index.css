@@ -14,99 +14,17 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-sage: var(--sage);
-  --color-term: var(--term);
-  --color-term-line: var(--term-line);
-  --color-term-ink: var(--term-ink);
-  --color-term-dim: var(--term-dim);
-  --color-ok: var(--ok);
-  --color-warn: var(--warn);
-  --color-err: var(--err);
 }
 
-/* Headings use the display face of the current option. */
 @utility font-display {
-  font-family: var(--display-font);
-  font-weight: var(--display-weight);
-  letter-spacing: var(--display-tracking);
+  font-family: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.04em;
 }
 
-/* Option C, Paper: sage and charcoal from the Mc logo. Light and dark. */
+/* The integration map reads these tokens too, so it matches the page. */
 :root {
   color-scheme: light;
-  --display-font: 'Instrument Serif', ui-serif, Georgia, serif;
-  --display-weight: 400;
-  --display-tracking: -0.01em;
-  --paper: #eef0ea;
-  --card: #f7f8f4;
-  --ink: #23241f;
-  --muted: #5d6157;
-  --line: #d2d7ca;
-  --accent: #3d6b45;
-  --accent-ink: #eef0ea;
-  --sage: #a9b59c;
-  --term: #1f221d;
-  --term-line: #33382f;
-  --term-ink: #e3e8da;
-  --term-dim: #8b927f;
-  --ok: #8fc78a;
-  --warn: #e3b25a;
-  --err: #ef7d5b;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root[data-look='paper']:not([data-theme='light']) {
-    color-scheme: dark;
-    --paper: #131511;
-    --card: #1a1d18;
-    --ink: #e6e9df;
-    --muted: #9da394;
-    --line: #2c3129;
-    --accent: #a7c99c;
-    --accent-ink: #131511;
-    --sage: #5d6a52;
-    --term: #0d0f0c;
-    --term-line: #272c24;
-  }
-}
-
-:root[data-look='paper'][data-theme='dark'] {
-  color-scheme: dark;
-  --paper: #131511;
-  --card: #1a1d18;
-  --ink: #e6e9df;
-  --muted: #9da394;
-  --line: #2c3129;
-  --accent: #a7c99c;
-  --accent-ink: #131511;
-  --sage: #5d6a52;
-  --term: #0d0f0c;
-  --term-line: #272c24;
-}
-
-/* Option A, Constellation: dark, with mint signal lines. */
-:root[data-look='constellation'] {
-  color-scheme: dark;
-  --display-font: 'Geist', ui-sans-serif, system-ui, sans-serif;
-  --display-weight: 600;
-  --display-tracking: -0.035em;
-  --paper: #07090c;
-  --card: #0d1116;
-  --ink: #e9eef3;
-  --muted: #8b97a4;
-  --line: #1b232c;
-  --accent: #6ff0c0;
-  --accent-ink: #07090c;
-  --sage: #16202a;
-  --term: #0b0f13;
-  --term-line: #1b232c;
-}
-
-/* Option B, Clean: bright product page with a coral accent. */
-:root[data-look='clean'] {
-  color-scheme: light;
-  --display-font: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
-  --display-weight: 600;
-  --display-tracking: -0.04em;
   --paper: #f6f6f3;
   --card: #ffffff;
   --ink: #0c0d10;
@@ -148,15 +66,6 @@ body {
   border-radius: 4px;
 }
 
-/* A faint grid behind the Paper hero. */
-.hero-grid {
-  background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--line) 55%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--line) 55%, transparent) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 70% at 30% 20%, black 30%, transparent 75%);
-}
-
 /* Labels that three.js places over the integration map. */
 .map-label {
   pointer-events: none;
@@ -183,36 +92,4 @@ body {
   color: var(--ink);
   background: color-mix(in oklab, var(--card) 85%, transparent);
   border-color: color-mix(in oklab, var(--accent) 60%, transparent);
-}
-
-@keyframes line-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.line-in {
-  animation: line-in 260ms ease-out both;
-}
-
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-.caret {
-  animation: blink 1s steps(1) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .line-in,
-  .caret {
-    animation: none;
-  }
 }

@@ -1,7 +1,7 @@
 import { HeroCopy } from './HeroCopy';
 import { IntegrationMap } from './IntegrationMap';
 
-export const HeroClean = () => (
+export const Hero = () => (
   <section id="top" className="relative overflow-hidden">
     <div
       aria-hidden="true"
@@ -20,7 +20,7 @@ export const HeroClean = () => (
       </a>
       <HeroCopy align="center" nameClassName="text-[clamp(3.5rem,10vw,7.5rem)] leading-[0.9]" />
       <div className="mx-auto mt-14 max-w-5xl md:mt-16">
-        <IntegrationMap light framed />
+        <IntegrationMap />
       </div>
     </div>
   </section>

@@ -380,23 +380,3 @@ export const mapScenarios: MapScenario[] = [
     body: 'In Runneth chat, the agent reads from a business app that the customer connected with one OAuth sign-in.',
   },
 ];
-
-export type RunLine = {
-  time: string;
-  kind: 'step' | 'fail' | 'recover' | 'done';
-  label: string;
-  detail: string;
-  status?: string;
-};
-
-// The run log in the Paper option. It shows a failure and a recovery.
-export const runLog: RunLine[] = [
-  { time: '09:02:11', kind: 'step', label: 'task', detail: 'weekly creative brief' },
-  { time: '09:02:12', kind: 'step', label: 'mcp', detail: 'motion.reports  meta · 7d', status: 'ok' },
-  { time: '09:02:13', kind: 'step', label: 'app', detail: 'sheets.read  budget plan', status: 'ok' },
-  { time: '09:02:15', kind: 'fail', label: 'session', detail: 'worker exited unexpectedly' },
-  { time: '09:02:15', kind: 'recover', label: 'contain', detail: 'other conversations unaffected' },
-  { time: '09:02:16', kind: 'recover', label: 'resume', detail: 'from saved progress' },
-  { time: '09:02:19', kind: 'step', label: 'tool', detail: 'slack.post  #creative-team', status: 'ok' },
-  { time: '09:02:19', kind: 'done', label: 'done', detail: 'brief delivered' },
-];
