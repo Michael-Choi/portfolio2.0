@@ -69,7 +69,7 @@ export const edges: [string, string][] = [
 
 export const diagramCaption = 'How the pieces connect. Scroll or hover the projects to trace each path.';
 
-/** Every way into Runneth, and every system it reaches. Work that uses all of them lights them all. */
+/** Every way into Runneth, and every system it reaches. Sign-in guards all of them. */
 const intoRunneth = edges.filter(([, to]) => to === 'runneth').map(([from, to]) => `${from}-${to}`);
 const outOfRunneth = edges.filter(([from]) => from === 'runneth').map(([from, to]) => `${from}-${to}`);
 
@@ -77,7 +77,7 @@ export type WorkItem = {
   title: string;
   text: string;
   href?: string;
-  /** Edges that this work built or uses, highlighted in the diagram. */
+  /** The connection this work built, highlighted in the diagram. Keep it to that one connection. */
   path: string[];
 };
 
@@ -94,17 +94,17 @@ export const work: WorkItem[] = [
   {
     title: 'Runneth MCP',
     text: 'Launched Runneth’s public MCP server. Now other agents can hand off creative strategy work to it.',
-    path: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth', ...outOfRunneth],
+    path: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth'],
   },
   {
     title: 'MCP support for Runneth',
     text: 'Designed and built Runneth’s MCP client. It plugs into other agents and MCP servers, whether they use OAuth, a client ID and secret, or custom auth headers.',
-    path: [...intoRunneth, 'runneth-mcp'],
+    path: ['runneth-mcp'],
   },
   {
     title: 'Business app integrations',
     text: 'Took business app integrations from zero to launch. One OAuth sign-in, and Runneth can use the apps a customer already works in.',
-    path: [...intoRunneth, 'runneth-apps'],
+    path: ['runneth-apps'],
   },
   {
     title: 'Runneth in Slack',

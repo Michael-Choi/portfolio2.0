@@ -271,8 +271,8 @@
         mcp: 'M9 3v5M15 3v5M7 8h10v3a5 5 0 0 1-10 0zM12 16v5',
         apps: 'M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z',
       };
-      // The highlighted path is the Runneth MCP project: agents hand work to Runneth, which reaches every system.
-      const LIT = new Set(['claude-runneth', 'chatgpt-runneth', 'agents-runneth', 'runneth-motion', 'runneth-mcp', 'runneth-apps']);
+      // The highlighted path is the Runneth MCP project: agents hand work to Runneth over MCP.
+      const LIT = new Set(['claude-runneth', 'chatgpt-runneth', 'agents-runneth']);
       const LIT_NODES = new Set([...LIT].flatMap((key) => key.split('-')));
 
       const box = document.getElementById('box');
