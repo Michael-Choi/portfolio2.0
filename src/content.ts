@@ -69,8 +69,9 @@ export const edges: [string, string][] = [
 
 export const diagramCaption = 'How the pieces connect. Scroll or hover the projects to trace each path.';
 
-/** Every way into Runneth. Work that any of them can use lights them all. */
+/** Every way into Runneth, and every system it reaches. Work that uses all of them lights them all. */
 const intoRunneth = edges.filter(([, to]) => to === 'runneth').map(([from, to]) => `${from}-${to}`);
+const outOfRunneth = edges.filter(([from]) => from === 'runneth').map(([from, to]) => `${from}-${to}`);
 
 export type WorkItem = {
   title: string;
@@ -93,7 +94,7 @@ export const work: WorkItem[] = [
   {
     title: 'Runneth MCP',
     text: 'Launched Runneth as a public MCP server, so any AI agent can hand it creative strategy work.',
-    path: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth', 'runneth-motion'],
+    path: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth', ...outOfRunneth],
   },
   {
     title: 'MCP support for Runneth',
@@ -114,7 +115,7 @@ export const work: WorkItem[] = [
     title: 'Sign-in and security',
     text: 'Moved Motion to revocable sessions, shipped two-factor sign-in, and fixed security-assessment findings.',
     // Sign-in guards every way into Runneth and every system it reaches.
-    path: [...intoRunneth, 'runneth-motion', 'runneth-mcp', 'runneth-apps'],
+    path: [...intoRunneth, ...outOfRunneth],
   },
 ];
 
