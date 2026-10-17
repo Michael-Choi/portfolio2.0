@@ -88,7 +88,7 @@ const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State
 };
 
 /** The integrations around Runneth. Highlights the edges in `active` for the current project. */
-export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
+export const IntegrationDiagram = ({ active, caption }: { active: string[] | null; caption?: string }) => {
   const box = useRef<HTMLDivElement>(null);
   const [boxes, setBoxes] = useState<Record<string, Box>>({});
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -229,9 +229,7 @@ export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
           </div>
         </div>
       </div>
-      <figcaption className="mt-5 text-sm text-muted">
-        How the pieces connect. Scroll or hover the projects to trace each path.
-      </figcaption>
+      {caption && <figcaption className="mt-5 text-sm text-muted">{caption}</figcaption>}
     </figure>
   );
 };

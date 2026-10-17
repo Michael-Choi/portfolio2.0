@@ -66,51 +66,49 @@ export const edges: [string, string][] = [
   ['runneth', 'apps'],
 ];
 
+export const diagramCaption = 'How the pieces connect. Scroll or hover the projects to trace each path.';
+
 export type WorkItem = {
   title: string;
   text: string;
-  year: string;
   href?: string;
   /** Edges that this work built or uses, highlighted in the diagram. */
   path: string[];
 };
 
+/** The year of every project in the list. */
+export const workYear = '2026';
+
 export const work: WorkItem[] = [
   {
     title: 'Motion MCP server',
     text: 'Built the MCP server that brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. Listed in both the Claude and ChatGPT app directories.',
-    year: '2026',
     href: 'https://claude.com/connectors/motion',
     path: ['claude-motion', 'chatgpt-motion', 'agents-motion'],
   },
   {
     title: 'Runneth MCP',
     text: 'Launched Runneth as a public MCP server, so any AI agent can hand it creative strategy work.',
-    year: '2026',
     path: ['claude-runneth', 'agents-runneth', 'runneth-motion'],
   },
   {
     title: 'MCP support for Runneth',
     text: 'Built MCP support so Runneth can connect to other agents and MCP servers, with OAuth, client ID and secret, or custom auth headers.',
-    year: '2026',
     path: ['chat-runneth', 'runneth-mcp'],
   },
   {
     title: 'Business app integrations',
     text: 'Built the integration layer that connects Runneth to a customer’s business apps with one OAuth sign-in.',
-    year: '2026',
     path: ['chat-runneth', 'runneth-apps'],
   },
   {
     title: 'Runneth in Slack',
     text: 'Made Runneth’s Slack replies fast and reliable. Queue wait fell from about 19 seconds to near zero.',
-    year: '2026',
     path: ['slack-runneth'],
   },
   {
     title: 'Sign-in and security',
     text: 'Moved Motion to revocable sessions, shipped two-factor sign-in, and fixed security-assessment findings.',
-    year: '2026',
     path: [],
   },
 ];

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowIcon } from '@/components/Icons';
 import { IntegrationDiagram } from '@/components/IntegrationDiagram';
-import { intro, previously, profile, work, type Rich, type WorkItem } from '@/content';
+import { diagramCaption, intro, previously, profile, work, workYear, type Rich, type WorkItem } from '@/content';
 
 const Heading = ({ children }: { children: ReactNode }) => (
   <h2 className="mb-3 text-sm font-medium text-muted">{children}</h2>
@@ -17,6 +17,11 @@ const External = ({ href, className, children }: { href: string; className?: str
 
 // Tailwind's xl breakpoint. At this width and up, the diagram moves to its own column on the right.
 const WIDE = '(min-width: 80rem)';
+
+// In one column, the pinned diagram shrinks to this scale, so the projects under it stay in view.
+const PIN_SCALE = 0.72;
+// The vertical padding of the pinned block in one column, in px (Tailwind py-6).
+const PIN_PADDING = 24;
 
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
@@ -59,7 +64,6 @@ const WorkRow = ({ item, active }: { item: WorkItem; active: boolean }) => {
         </span>
         <span className="mt-0.5 block text-pretty text-muted">{item.text}</span>
       </span>
-      <span className="shrink-0 tabular-nums text-muted">{item.year}</span>
     </>
   );
   const className = `${rowClass} ${active ? 'bg-ink/[0.035]' : ''}`;
@@ -68,28 +72,41 @@ const WorkRow = ({ item, active }: { item: WorkItem; active: boolean }) => {
       {body}
     </External>
   ) : (
-    <div className={className}>{body}</div>
+    // Focusable, so keyboard users can trace this project's path too.
+    <div tabIndex={0} className={className}>
+      {body}
+    </div>
   );
 };
 
 export default function App() {
-  // The project under the pointer traces its path in the diagram. Without a pointer, the
-  // project in the middle of the screen does, so scrolling the list walks through the paths.
+  // The project under the pointer or keyboard focus traces its path in the diagram. Otherwise the
+  // project that scrolls past a set line does, so scrolling the list walks through the paths.
   const [hovered, setHovered] = useState<number | null>(null);
   const [scrolled, setScrolled] = useState<number | null>(null);
   const rows = useRef<(HTMLLIElement | null)[]>([]);
   const wide = useMediaQuery(WIDE);
 
+  // In one column, the diagram shrinks and shows a thin divider while it is pinned. A sentinel
+  // just above the pinned block leaves the viewport at the moment the block sticks.
+  const sentinel = useRef<HTMLDivElement>(null);
+  const [pinned, setPinned] = useState(false);
+  const pinBlock = useRef<HTMLDivElement>(null);
+
   // The active project is the last one whose top has passed a line on the screen. In one column,
-  // the line sits below the pinned diagram. In two columns, it sits higher, so the last project
-  // can reach it before the page ends. At the very top, no project is active and the diagram rests.
+  // the line sits just below the pinned, shrunken diagram, so the active project is the first one
+  // in view under it. In two columns, the line sits a little above the middle of the screen, so
+  // the last project can reach it before the page ends. Until the diagram pins in one column, and
+  // at the very top in two columns, no project is active and the diagram rests.
   useEffect(() => {
     const update = () => {
-      if (window.scrollY < 1) {
+      const pinnedNow = (sentinel.current?.getBoundingClientRect().top ?? 0) < 0;
+      if (wide ? window.scrollY < 1 : !pinnedNow) {
         setScrolled(null);
         return;
       }
-      const line = window.innerHeight * (wide ? 0.45 : 0.6);
+      const shrunkBottom = PIN_PADDING * 2 + (pinBlock.current?.offsetHeight ?? 0) * PIN_SCALE;
+      const line = wide ? window.innerHeight * 0.45 : shrunkBottom + 48;
       let index: number | null = null;
       for (const [i, row] of rows.current.entries()) {
         if (row && row.getBoundingClientRect().top <= line) index = i;
@@ -106,10 +123,6 @@ export default function App() {
     };
   }, [wide]);
 
-  // A thin divider appears under the diagram only while it is pinned in one column. A sentinel
-  // just above the pinned block leaves the viewport at the moment the block sticks.
-  const sentinel = useRef<HTMLDivElement>(null);
-  const [pinned, setPinned] = useState(false);
   useEffect(() => {
     const element = sentinel.current;
     if (!element) return;
@@ -120,6 +133,7 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
+  const shrink = pinned && !wide;
   const activeIndex = hovered ?? scrolled;
   const active = activeIndex === null ? null : work[activeIndex].path;
 
@@ -146,17 +160,32 @@ export default function App() {
           with the end of the list. */}
       <section aria-labelledby="work-title" className="mt-10 xl:col-span-2 xl:grid xl:grid-cols-subgrid">
         <div ref={sentinel} aria-hidden="true" className="h-px xl:hidden" />
-        <div
-          className={`sticky top-0 z-10 -mx-6 bg-paper px-6 pb-6 pt-6 transition-[box-shadow] duration-200 xl:top-16 xl:col-start-2 xl:row-start-1 xl:mx-0 xl:self-start xl:p-0 ${
-            pinned ? 'shadow-[0_1px_0_var(--line)] xl:shadow-none' : ''
-          }`}
-        >
-          <IntegrationDiagram active={active} />
+        <div className="pointer-events-none sticky top-0 z-10 -mx-6 px-6 py-6 xl:pointer-events-auto xl:top-16 xl:col-start-2 xl:row-start-1 xl:mx-0 xl:self-start xl:p-0">
+          {/* A paper backdrop hides the projects that scroll under the diagram. It shrinks with the
+              diagram, so the projects show in the space that the diagram gives up. */}
+          <div
+            aria-hidden="true"
+            className={`absolute inset-x-0 top-0 bg-paper transition-[height,box-shadow] duration-200 motion-reduce:transition-none xl:hidden ${
+              shrink ? 'shadow-[0_1px_0_var(--line)]' : ''
+            }`}
+            style={{ height: shrink ? `calc(${PIN_PADDING * 2}px + (100% - ${PIN_PADDING * 2}px) * ${PIN_SCALE})` : '100%' }}
+          />
+          <div
+            ref={pinBlock}
+            className="pointer-events-auto relative origin-top transition-transform duration-200 motion-reduce:transition-none"
+            style={shrink ? { transform: `scale(${PIN_SCALE})` } : undefined}
+          >
+            <IntegrationDiagram active={active} caption={wide ? diagramCaption : undefined} />
+          </div>
         </div>
-        <div className="mt-4 xl:hidden" />
+        {/* In one column, the caption sits outside the pinned block, so it scrolls away. */}
+        {!wide && <p className="mb-10 text-sm text-muted">{diagramCaption}</p>}
         <div className="min-w-0 xl:col-start-1 xl:row-start-1">
           <Heading>
-            <span id="work-title">Selected work</span>
+            <span className="flex items-baseline justify-between gap-6">
+              <span id="work-title">Selected work at Motion</span>
+              <span className="font-normal tabular-nums">{workYear}</span>
+            </span>
           </Heading>
           <ul onPointerLeave={() => setHovered(null)}>
             {work.map((item, index) => (
