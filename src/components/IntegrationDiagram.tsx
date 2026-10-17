@@ -14,7 +14,6 @@ const FILL: Record<Group, string> = {
 
 // 24×24 stroke icons. Generic glyphs, not brand logos.
 const ICONS: Record<string, string> = {
-  runneth: 'M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4',
   claude: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z',
   chatgpt: 'M12 4a8 8 0 0 1 6.9 12L20 20l-4-1.1A8 8 0 1 1 12 4z',
   agents: 'M7 9h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM12 5v4M9.5 14h.01M14.5 14h.01',
@@ -43,37 +42,47 @@ function link(a: Box, b: Box) {
 
 const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State; className?: string }) => {
   const hub = node.group === 'hub';
-  return (
-    <span
-      data-node={node.id}
-      className={`relative inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl border bg-card py-1.5 pl-1.5 transition-[opacity,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
-        hub
-          ? 'border-hub/40 pr-4 shadow-[0_0_0_5px_color-mix(in_oklab,var(--hub)_12%,transparent),0_12px_28px_-12px_color-mix(in_oklab,var(--hub)_55%,transparent)]'
-          : `pr-3 shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_16px_-10px_rgb(0_0_0/0.2)] ${
-              state === 'on' ? 'border-ink/25' : 'border-line'
-            }`
-      } ${state === 'off' ? 'opacity-40' : ''} ${className}`}
-    >
-      <span
-        aria-hidden="true"
-        className={`grid shrink-0 place-items-center rounded-lg text-white ${FILL[node.group]} ${hub ? 'size-8' : 'size-6 sm:size-7'}`}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          className={hub ? 'size-[18px]' : 'size-3.5 sm:size-4'}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d={ICONS[node.id]} />
-        </svg>
-      </span>
+  const cardClass = `relative inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl border bg-card py-1.5 pl-1.5 transition-[opacity,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
+    hub
+      ? 'border-hub/40 pr-4 shadow-[0_0_0_5px_color-mix(in_oklab,var(--hub)_12%,transparent),0_12px_28px_-12px_color-mix(in_oklab,var(--hub)_55%,transparent)]'
+      : `pr-3 shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_16px_-10px_rgb(0_0_0/0.2)] ${
+          state === 'on' ? 'border-ink/25' : 'border-line'
+        }`
+  } ${node.href ? 'hover:border-hub' : ''} ${state === 'off' ? 'opacity-40' : ''} ${className}`;
+  const size = hub ? 'size-8' : 'size-6 sm:size-7';
+  const body = (
+    <>
+      {node.logo ? (
+        <img src={node.logo} alt="" className={`shrink-0 rounded-lg ${size}`} />
+      ) : (
+        <span aria-hidden="true" className={`grid shrink-0 place-items-center rounded-lg text-white ${FILL[node.group]} ${size}`}>
+          <svg
+            viewBox="0 0 24 24"
+            className={hub ? 'size-[18px]' : 'size-3.5 sm:size-4'}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d={ICONS[node.id]} />
+          </svg>
+        </span>
+      )}
       <span className="leading-tight">
         <span className={`block font-medium ${hub ? 'text-sm' : 'text-[12.5px] sm:text-[13px]'}`}>{node.label}</span>
         <span className="hidden text-xs text-muted sm:block">{node.kind}</span>
       </span>
+    </>
+  );
+  return node.href ? (
+    <a data-node={node.id} href={node.href} target="_blank" rel="noopener noreferrer" className={cardClass}>
+      {body}
+      <span className="sr-only"> (opens in new tab)</span>
+    </a>
+  ) : (
+    <span data-node={node.id} className={cardClass}>
+      {body}
     </span>
   );
 };

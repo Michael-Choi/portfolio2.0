@@ -243,7 +243,7 @@
         { id: 'agents', label: 'Other agents', kind: 'Any MCP client', group: 'surface', side: 'left' },
         { id: 'slack', label: 'Slack', kind: 'Team chat', group: 'surface', side: 'left' },
         { id: 'chat', label: 'Runneth chat', kind: 'Web chat', group: 'surface', side: 'left' },
-        { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center' },
+        { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center', logo: '../public/runneth-logo.svg' },
         { id: 'motion', label: 'Motion data', kind: 'Ad performance', group: 'data', side: 'right' },
         { id: 'mcp', label: 'Agents & MCP servers', kind: 'Over MCP', group: 'tools', side: 'right' },
         { id: 'apps', label: 'Business apps', kind: 'One OAuth sign-in', group: 'apps', side: 'right' },
@@ -261,7 +261,6 @@
         ['runneth', 'apps'],
       ];
       const ICONS = {
-        runneth: 'M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4',
         claude: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z',
         chatgpt: 'M12 4a8 8 0 0 1 6.9 12L20 20l-4-1.1A8 8 0 1 1 12 4z',
         agents: 'M7 9h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM12 5v4M9.5 14h.01M14.5 14h.01',
@@ -280,8 +279,11 @@
         const card = document.createElement('span');
         card.dataset.node = node.id;
         card.className = `node ${node.group === 'hub' ? 'hub' : ''} ${LIT_NODES.has(node.id) ? 'on' : ''}`;
+        const icon = node.logo
+          ? `<img class="icon" src="${node.logo}" alt="">`
+          : `<span class="icon" style="background:var(--${node.group})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[node.id]}"/></svg></span>`;
         card.innerHTML =
-          `<span class="icon" style="background:var(--${node.group})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[node.id]}"/></svg></span>` +
+          icon +
           `<span><span class="label">${node.label}</span><span class="kind">${node.kind}</span></span>`;
         document.getElementById(node.side).appendChild(card);
       }

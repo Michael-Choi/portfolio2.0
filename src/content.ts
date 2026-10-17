@@ -10,9 +10,18 @@ export const profile = {
   x: 'https://x.com/mikechoi',
 };
 
-export const intro = [
-  'I build the integrations that connect AI agents to the tools people already use.',
-  'At Motion, I work on Runneth, our AI agent for creative strategy. Most days I also work alongside several coding agents and review their work like a lead reviews a team.',
+const runneth = 'https://runneth.com';
+
+/** Text with inline links. Each part is plain text or a link. */
+export type Rich = (string | { text: string; href: string })[];
+
+export const intro: Rich[] = [
+  ['I build the integrations that connect AI agents to the tools people already use.'],
+  [
+    'At Motion, I work on ',
+    { text: 'Runneth', href: runneth },
+    ', our AI agent for creative strategy. Most days I also work alongside several coding agents and review their work like a lead reviews a team.',
+  ],
 ];
 
 export type Group = 'hub' | 'surface' | 'data' | 'tools' | 'apps';
@@ -23,6 +32,10 @@ export type MapNode = {
   kind: string;
   group: Group;
   side: 'left' | 'center' | 'right';
+  /** An image that replaces the icon. */
+  logo?: string;
+  /** Where the card links to. */
+  href?: string;
 };
 
 // The integration diagram. Left: where people and agents ask. Center: Runneth. Right: what
@@ -33,7 +46,7 @@ export const nodes: MapNode[] = [
   { id: 'agents', label: 'Other agents', kind: 'Any MCP client', group: 'surface', side: 'left' },
   { id: 'slack', label: 'Slack', kind: 'Team chat', group: 'surface', side: 'left' },
   { id: 'chat', label: 'Runneth chat', kind: 'Web chat', group: 'surface', side: 'left' },
-  { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center' },
+  { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center', logo: '/runneth-logo.svg', href: runneth },
   { id: 'motion', label: 'Motion data', kind: 'Ad performance', group: 'data', side: 'right' },
   { id: 'mcp', label: 'Agents & MCP servers', kind: 'Over MCP', group: 'tools', side: 'right' },
   { id: 'apps', label: 'Business apps', kind: 'One OAuth sign-in', group: 'apps', side: 'right' },
