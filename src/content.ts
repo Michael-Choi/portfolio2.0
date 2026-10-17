@@ -110,7 +110,17 @@ export const work: WorkItem[] = [
   {
     title: 'Sign-in and security',
     text: 'Moved Motion to revocable sessions, shipped two-factor sign-in, and fixed security-assessment findings.',
-    path: [],
+    // Sign-in guards every way into Runneth and every system it reaches.
+    path: [
+      'claude-runneth',
+      'chatgpt-runneth',
+      'agents-runneth',
+      'slack-runneth',
+      'chat-runneth',
+      'runneth-motion',
+      'runneth-mcp',
+      'runneth-apps',
+    ],
   },
 ];
 
