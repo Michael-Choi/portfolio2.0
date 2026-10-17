@@ -26,7 +26,7 @@ const CopyEmail = () => {
     <button
       type="button"
       onClick={copy}
-      className="shrink-0 rounded-full border border-line bg-card px-3.5 py-1.5 font-mono text-xs text-muted transition-colors hover:border-ink/40 hover:text-ink"
+      className="shrink-0 rounded-full border border-line bg-card px-3.5 py-1.5 text-sm font-medium text-muted transition-colors hover:border-ink/25 hover:text-ink"
     >
       <span aria-live="polite">{copied ? 'Copied' : 'Copy'}</span>
     </button>

@@ -163,7 +163,7 @@ export function mountIntegrationMap(container: HTMLElement, options: Options) {
   // A faint dot grid under the graph. Dots fade into the card color toward the edges.
   const floor: number[] = [];
   const floorColors: number[] = [];
-  const near = new THREE.Color('#c9c9c2');
+  const near = new THREE.Color('#dcdcd5');
   const far = new THREE.Color('#ffffff');
   for (let x = -9; x <= 9; x += 0.6) {
     for (let z = -9; z <= 9; z += 0.6) {
@@ -177,7 +177,7 @@ export function mountIntegrationMap(container: HTMLElement, options: Options) {
   const floorGeometry = new THREE.BufferGeometry();
   floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(floor, 3));
   floorGeometry.setAttribute('color', new THREE.Float32BufferAttribute(floorColors, 3));
-  graph.add(new THREE.Points(floorGeometry, new THREE.PointsMaterial({ size: 0.07, vertexColors: true })));
+  graph.add(new THREE.Points(floorGeometry, new THREE.PointsMaterial({ size: 0.055, vertexColors: true })));
 
   for (const node of mapNodes) {
     const anchor = new THREE.Object3D();

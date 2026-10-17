@@ -21,8 +21,8 @@ export const FOV = 38;
 
 /** Camera distance. Narrow views and the compact phone map move the camera back so every card fits. */
 export function cameraZFor(aspect: number, compact = false) {
-  const base = aspect < 1.05 ? (11 / aspect) * 1.22 : 11;
-  return compact ? base * 1.3 : base;
+  const base = aspect < 1.05 ? (12.5 / aspect) * 1.1 : 12.5;
+  return compact ? base * 1.14 : base;
 }
 
 /**

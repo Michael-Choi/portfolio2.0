@@ -26,3 +26,14 @@ export const nodeGroup = (id: string) => nodeById.get(id)?.group ?? 'surface';
 
 /** A request path in words, such as "Claude → Motion data → Claude". */
 export const pathWords = (path: string[]) => path.map((id) => nodeById.get(id)?.label ?? id).join(' → ');
+
+// Soft background tints for tag chips.
+const TINT: Record<Group, string> = {
+  hub: 'bg-hub/10',
+  surface: 'bg-surface/10',
+  data: 'bg-data/12',
+  tools: 'bg-tools/10',
+  apps: 'bg-apps/10',
+};
+
+export const groupTint = (group: Group) => TINT[group];

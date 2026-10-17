@@ -3,14 +3,11 @@ import { ExternalLink } from './Bits';
 
 export const Footer = () => (
   <footer className="border-t border-line">
-    <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-8 font-mono text-xs text-muted sm:px-6">
+    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-8 text-sm text-muted sm:px-6">
       <span>
-        © {new Date().getFullYear()} {profile.name}
+        © {new Date().getFullYear()} {profile.name} · {profile.location}
       </span>
-      <span aria-hidden="true">·</span>
-      <span>{profile.location}</span>
-      <span aria-hidden="true">·</span>
-      <ExternalLink href={profile.github} className="underline-offset-4 hover:text-ink hover:underline">
+      <ExternalLink href={profile.github} className="transition-colors hover:text-ink">
         GitHub
       </ExternalLink>
     </div>

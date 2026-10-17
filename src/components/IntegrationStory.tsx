@@ -3,7 +3,7 @@ import { mapNodes, story, type StoryStep } from '@/content';
 import { useMediaQuery } from '@/hooks';
 import { pathWords } from '@/groups';
 import type { MapScenario } from '@/three/integrationMap';
-import { ExternalLink, Meta, StatCallout } from './Bits';
+import { Checklist, ExternalLink, Meta, StatCallout } from './Bits';
 import { MapCanvas } from './MapCanvas';
 import { PathGlyph } from './PathGlyph';
 
@@ -20,36 +20,27 @@ const description = `The map shows ${mapNodes
 const StepBody = ({ step, headingId }: { step: StoryStep; headingId: string }) => (
   <div>
     <Meta tag={step.tag} group={step.group} date={step.date} />
-    <h3 id={headingId} className="mt-4 font-display text-[1.75rem] leading-tight">
+    <h3 id={headingId} className="mt-5 text-balance font-display text-[1.75rem] leading-tight">
       {step.title}
     </h3>
-    <p className="mt-3 text-pretty text-[17px] leading-relaxed">{step.what}</p>
-    <p className="mt-5 font-mono text-xs uppercase tracking-[0.14em] text-muted">My part</p>
-    <ul className="mt-2 space-y-1.5 text-[15px] leading-relaxed text-muted">
-      {step.bullets.map((bullet) => (
-        <li key={bullet} className="flex gap-2.5">
-          <span aria-hidden="true" className="mt-[0.7em] h-px w-2.5 shrink-0 bg-muted/60" />
-          {bullet}
-        </li>
-      ))}
-    </ul>
-    {step.stat && (
-      <div className="mt-6">
-        <StatCallout value={step.stat.value} label={step.stat.label} />
-      </div>
-    )}
-    {step.links && (
-      <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-        {step.links.map((link) => (
+    <p className="mt-3 text-pretty text-[17px] leading-relaxed text-ink/85">{step.what}</p>
+    <p className="mt-6 text-sm font-semibold">What I did</p>
+    <div className="mt-2.5">
+      <Checklist items={step.bullets} />
+    </div>
+    {(step.stat || step.links) && (
+      <div className="mt-7 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line pt-5">
+        {step.stat && <StatCallout value={step.stat.value} label={step.stat.label} />}
+        {step.links?.map((link) => (
           <ExternalLink
             key={link.href}
             href={link.href}
-            className="font-medium text-accent-text underline decoration-accent/40 underline-offset-4 hover:decoration-accent"
+            className="text-sm font-medium text-accent-text transition-colors hover:text-ink"
           >
             {link.label} ↗
           </ExternalLink>
         ))}
-      </p>
+      </div>
     )}
     <p className="sr-only">Request path: {pathWords(step.path)}.</p>
   </div>
@@ -103,8 +94,10 @@ const Pinned = () => {
             className={`flex min-h-[70svh] scroll-mt-24 items-center ${index === story.length - 1 ? 'pb-[20svh]' : ''}`}
           >
             <div
-              className={`border-l-2 pl-6 transition-colors duration-300 motion-reduce:transition-none ${
-                index === active ? 'border-hub' : 'border-line'
+              className={`w-full rounded-2xl border bg-card p-7 transition-[border-color,box-shadow,opacity] duration-300 motion-reduce:transition-none ${
+                index === active
+                  ? 'border-ink/15 shadow-[0_20px_50px_-30px_rgb(12_13_16/0.35)]'
+                  : 'border-line shadow-none'
               }`}
             >
               <StepBody step={step} headingId={`${step.id}-title`} />
@@ -114,28 +107,29 @@ const Pinned = () => {
       </div>
       <div className="col-span-7">
         <div className="sticky top-20 flex h-[min(calc(100svh-96px),720px)] flex-col overflow-hidden rounded-3xl border border-line bg-card shadow-[0_30px_80px_-40px_rgba(12,13,16,0.3)]">
-          <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line px-3">
-            {story.map((step, index) => (
-              <button
-                key={step.id}
-                type="button"
-                aria-current={index === active ? 'step' : undefined}
-                onClick={() => document.getElementById(step.id)?.scrollIntoView({ block: 'center' })}
-                className="rounded-full px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:bg-paper hover:text-ink aria-[current=step]:bg-ink aria-[current=step]:text-card"
-              >
-                {step.fig} {step.tag}
-              </button>
-            ))}
+          <div className="flex h-14 shrink-0 items-center border-b border-line px-3">
+            <div className="flex gap-0.5 rounded-full border border-line bg-paper p-0.5">
+              {story.map((step, index) => (
+                <button
+                  key={step.id}
+                  type="button"
+                  aria-current={index === active ? 'step' : undefined}
+                  onClick={() => document.getElementById(step.id)?.scrollIntoView({ block: 'center' })}
+                  className="rounded-full px-3 py-1.5 text-[13px] font-medium text-muted transition-colors hover:text-ink aria-[current=step]:bg-card aria-[current=step]:text-ink aria-[current=step]:shadow-[0_1px_3px_rgb(12_13_16/0.12)]"
+                >
+                  {step.tag}
+                </button>
+              ))}
+            </div>
           </div>
           <div aria-hidden="true" className="relative min-h-0 flex-1">
             <MapCanvas scenario={scenario} />
           </div>
-          <div className="flex h-14 shrink-0 items-center gap-3 border-t border-line px-5 font-mono text-xs text-muted">
+          <div className="flex h-14 shrink-0 items-center gap-3 border-t border-line px-5 text-sm text-muted">
             {current ? (
               <>
-                <span className="shrink-0 whitespace-nowrap rounded-full bg-accent-text px-2.5 py-1 font-medium text-white">
-                  {current.edgeLabel}
-                </span>
+                <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-hub" />
+                <span className="shrink-0 whitespace-nowrap font-medium text-ink">{current.edgeLabel}</span>
                 <span className="truncate">{pathWords(current.path)}</span>
               </>
             ) : (
@@ -165,7 +159,7 @@ const Stacked = () => {
   return (
     <div className="mt-10">
       <div ref={map} className="scroll-mt-20 overflow-hidden rounded-2xl border border-line bg-card">
-        <p className="px-4 pt-3 font-mono text-xs text-muted">Tap a path</p>
+        <p className="px-4 pt-3.5 text-xs font-medium text-muted">Tap a path</p>
         <div role="group" aria-label="Request paths" className="tab-strip flex gap-2 overflow-x-auto px-4 pb-3 pt-2">
           {story.map((step, index) => (
             <button
@@ -173,17 +167,17 @@ const Stacked = () => {
               type="button"
               aria-pressed={index === active}
               onClick={() => select(index)}
-              className="h-9 shrink-0 rounded-full border border-line px-3 font-mono text-xs text-muted aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-card"
+              className="h-9 shrink-0 rounded-full border border-line px-3.5 text-[13px] font-medium text-muted aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-card"
             >
-              {step.fig} {step.tag}
+              {step.tag}
             </button>
           ))}
         </div>
         <div aria-hidden="true" className="relative h-[280px] border-y border-line">
           <MapCanvas scenario={scenario} compact />
         </div>
-        <p aria-live={touched ? 'polite' : 'off'} className="px-4 py-3 font-mono text-xs text-muted">
-          <span className="text-accent-text">{current.edgeLabel}</span> · {pathWords(current.path)}
+        <p aria-live={touched ? 'polite' : 'off'} className="px-4 py-3 text-sm text-muted">
+          <span className="font-medium text-ink">{current.edgeLabel}</span> · {pathWords(current.path)}
         </p>
       </div>
 
@@ -193,7 +187,7 @@ const Stacked = () => {
             key={step.id}
             id={step.id}
             aria-labelledby={`${step.id}-card-title`}
-            className="scroll-mt-20 rounded-2xl border border-line bg-card p-5"
+            className="scroll-mt-20 rounded-2xl border border-line bg-card p-6"
           >
             <StepBody step={step} headingId={`${step.id}-card-title`} />
             <button type="button" onClick={() => select(index, true)} className="mt-5 block w-full text-left">
@@ -214,11 +208,11 @@ export const IntegrationStory = () => {
     <section id="work" aria-labelledby="work-title" className="scroll-mt-16">
       <div className="mx-auto max-w-6xl px-4 pt-24 sm:px-6 md:pt-32">
         <header className="max-w-2xl">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">01 — What I built</p>
-          <h2 id="work-title" className="mt-3 font-display text-4xl leading-[1.05] md:text-5xl">
+          <p className="eyebrow">What I built</p>
+          <h2 id="work-title" className="mt-3 text-balance font-display text-4xl leading-[1.05] md:text-[2.75rem]">
             Four ways agents reach the tools people use
           </h2>
-          <p className="mt-4 text-pretty text-lg text-muted">
+          <p className="mt-4 text-pretty text-lg leading-relaxed text-muted">
             Each part lights up its path on the map. Together they connect Runneth and Motion to Claude, other
             agents, customer MCP servers, and business apps.
           </p>

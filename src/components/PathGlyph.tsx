@@ -15,6 +15,6 @@ export const PathGlyph = ({ path }: { path: string[] }) => (
         </span>
       ))}
     </div>
-    <figcaption className="mt-1.5 font-mono text-xs text-muted">{pathWords(path)}</figcaption>
+    <figcaption className="mt-1.5 text-xs text-muted">{pathWords(path)}</figcaption>
   </figure>
 );

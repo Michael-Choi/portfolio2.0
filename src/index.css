@@ -91,6 +91,23 @@ body {
   contain-intrinsic-size: auto 800px;
 }
 
+/* Section eyebrows: small, sans, in the accent. */
+@utility eyebrow {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--accent-text);
+}
+
+/* A soft accent glow and a faint grid behind the top of the hero. */
+.hero-backdrop {
+  background:
+    radial-gradient(55% 60% at 50% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 72%),
+    linear-gradient(to right, color-mix(in oklab, var(--line) 70%, transparent) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(to bottom, color-mix(in oklab, var(--line) 70%, transparent) 1px, transparent 1px) 0 0 / 56px 56px;
+  mask-image: radial-gradient(70% 75% at 50% 0%, black 35%, transparent 80%);
+}
+
 /*
  * Map nodes. The three.js scene and the SVG poster render the same markup (src/nodeCard.ts).
  * The scene sets --depth and data-state on .node-inner.
