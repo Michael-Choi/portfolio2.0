@@ -87,23 +87,23 @@ export const workYear = '2026';
 export const work: WorkItem[] = [
   {
     title: 'Motion MCP server',
-    text: 'Built it solo, from zero to launch. It brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP, and it is listed in both the Claude and ChatGPT app directories.',
+    text: 'Created and launched the MCP server that brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. Listed in both the Claude and ChatGPT app directories.',
     href: 'https://claude.com/connectors/motion',
     path: ['claude-motion', 'chatgpt-motion', 'agents-motion'],
   },
   {
     title: 'Runneth MCP',
-    text: 'Built it solo, from zero to public launch. Any AI agent can now hand Runneth creative strategy work over MCP.',
+    text: 'Created and launched Runneth’s public MCP server, so any AI agent can hand it creative strategy work.',
     path: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth', ...outOfRunneth],
   },
   {
     title: 'MCP support for Runneth',
-    text: 'Built it solo, from zero to launch. Runneth now connects to other agents and MCP servers with OAuth, client ID and secret, or custom auth headers.',
+    text: 'Created MCP support for Runneth, so it connects to other agents and MCP servers with OAuth, client ID and secret, or custom auth headers.',
     path: [...intoRunneth, 'runneth-mcp'],
   },
   {
     title: 'Business app integrations',
-    text: 'Built it solo, from zero to launch. Runneth now connects to a customer’s business apps with one OAuth sign-in.',
+    text: 'Created the integration layer that connects Runneth to a customer’s business apps with one OAuth sign-in.',
     path: [...intoRunneth, 'runneth-apps'],
   },
   {
