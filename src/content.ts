@@ -15,20 +15,27 @@ export const intro = [
 ];
 
 export type Group = 'hub' | 'surface' | 'data' | 'tools' | 'apps';
-export type MapNode = { id: string; label: string; group: Group; side: 'left' | 'center' | 'right' };
+export type MapNode = {
+  id: string;
+  label: string;
+  /** A short role line under the label. */
+  kind: string;
+  group: Group;
+  side: 'left' | 'center' | 'right';
+};
 
-// The integration diagram. Left: assistants, agents, and chat surfaces. Center: Motion data and
-// Runneth. Right: the tools that Runneth reaches.
+// The integration diagram. Left: where people and agents ask. Center: Motion data and Runneth.
+// Right: what Runneth reaches.
 export const nodes: MapNode[] = [
-  { id: 'claude', label: 'Claude', group: 'surface', side: 'left' },
-  { id: 'chatgpt', label: 'ChatGPT', group: 'surface', side: 'left' },
-  { id: 'agents', label: 'Other agents', group: 'surface', side: 'left' },
-  { id: 'slack', label: 'Slack', group: 'surface', side: 'left' },
-  { id: 'chat', label: 'Runneth chat', group: 'surface', side: 'left' },
-  { id: 'motion', label: 'Motion data', group: 'data', side: 'center' },
-  { id: 'runneth', label: 'Runneth', group: 'hub', side: 'center' },
-  { id: 'mcp', label: 'MCP servers', group: 'tools', side: 'right' },
-  { id: 'apps', label: 'Business apps', group: 'apps', side: 'right' },
+  { id: 'claude', label: 'Claude', kind: 'Assistant', group: 'surface', side: 'left' },
+  { id: 'chatgpt', label: 'ChatGPT', kind: 'Assistant', group: 'surface', side: 'left' },
+  { id: 'agents', label: 'Other agents', kind: 'Any MCP client', group: 'surface', side: 'left' },
+  { id: 'slack', label: 'Slack', kind: 'Team chat', group: 'surface', side: 'left' },
+  { id: 'chat', label: 'Runneth chat', kind: 'Web chat', group: 'surface', side: 'left' },
+  { id: 'motion', label: 'Motion data', kind: 'Ad performance', group: 'data', side: 'center' },
+  { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center' },
+  { id: 'mcp', label: 'Agents & MCP servers', kind: 'Over MCP', group: 'tools', side: 'right' },
+  { id: 'apps', label: 'Business apps', kind: 'One OAuth sign-in', group: 'apps', side: 'right' },
 ];
 
 /** Edges as [from, to]. The edges into Motion data are the Motion MCP server. */
@@ -57,38 +64,38 @@ export type WorkItem = {
 export const work: WorkItem[] = [
   {
     title: 'Motion MCP server',
-    text: 'Brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. Listed in Claude’s connector directory.',
+    text: 'Built the MCP server that brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. Listed in Claude’s connector directory.',
     year: '2026',
     href: 'https://claude.com/connectors/motion',
     path: ['claude-motion', 'chatgpt-motion', 'agents-motion'],
   },
   {
     title: 'Runneth MCP',
-    text: 'Helped launch Runneth as a public MCP server that any AI agent can call.',
+    text: 'Launched Runneth as a public MCP server, so any AI agent can hand it creative strategy work.',
     year: '2026',
     path: ['claude-runneth', 'agents-runneth', 'runneth-motion'],
   },
   {
-    title: 'MCP connections',
-    text: 'Customers connect their own MCP servers to Runneth from chat, with OAuth.',
+    title: 'MCP support for Runneth',
+    text: 'Built MCP support so Runneth can connect to other agents and MCP servers, with OAuth.',
     year: '2026',
     path: ['chat-runneth', 'runneth-mcp'],
   },
   {
     title: 'Business app integrations',
-    text: 'One OAuth sign-in connects Runneth to a customer’s business apps.',
+    text: 'Built the integration layer that connects Runneth to a customer’s business apps with one OAuth sign-in.',
     year: '2026',
     path: ['chat-runneth', 'runneth-apps'],
   },
   {
     title: 'Runneth in Slack',
-    text: 'Made replies fast and reliable. Queue wait fell from about 19 seconds to near zero.',
+    text: 'Made Runneth’s Slack replies fast and reliable. Queue wait fell from about 19 seconds to near zero.',
     year: '2026',
     path: ['slack-runneth'],
   },
   {
     title: 'Sign-in and security',
-    text: 'Revocable sessions, two-factor sign-in, and fixes from a security assessment.',
+    text: 'Moved Motion to revocable sessions, shipped two-factor sign-in, and fixed security-assessment findings.',
     year: '2026',
     path: [],
   },

@@ -54,7 +54,13 @@ export default function App() {
     const observer = new IntersectionObserver(
       (entries) => {
         const entering = entries.filter((entry) => entry.isIntersecting);
-        if (entering.length > 0) setScrolled(Number((entering[0].target as HTMLElement).dataset.index));
+        if (entering.length > 0) {
+          setScrolled(Number((entering[0].target as HTMLElement).dataset.index));
+          return;
+        }
+        // Scrolled back above the list: the diagram returns to its resting state.
+        const first = entries.find((entry) => (entry.target as HTMLElement).dataset.index === '0');
+        if (first && first.boundingClientRect.top > window.innerHeight / 2) setScrolled(null);
       },
       // A band below the pinned diagram.
       { rootMargin: '-55% 0px -35% 0px', threshold: 0 },
