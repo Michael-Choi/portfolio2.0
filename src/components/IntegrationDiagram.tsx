@@ -167,28 +167,31 @@ export const IntegrationDiagram = ({ active, caption }: { active: string[] | nul
               <feGaussianBlur stdDeviation="3" />
             </filter>
           </defs>
-          {edges.map(([from, to]) => {
+          {/* At rest, every connection flows. A project narrows the flow to its own connection. */}
+          {edges.map(([from, to], index) => {
             const a = boxes[from];
             const b = boxes[to];
             if (!a || !b) return null;
             const key = `${from}-${to}`;
             const d = link(a, b, tiers);
             const on = lit.has(key);
+            const flowing = on || lit.size === 0;
             return (
               <g key={key}>
                 {on && <path d={d} fill="none" stroke="var(--hub)" strokeOpacity={0.35} strokeWidth={5} filter="url(#path-glow)" />}
                 <path
                   d={d}
                   fill="none"
-                  stroke={on ? 'var(--hub)' : 'var(--muted)'}
-                  strokeOpacity={on ? 1 : lit.size > 0 ? 0.14 : 0.3}
+                  stroke={flowing ? 'var(--hub)' : 'var(--muted)'}
+                  strokeOpacity={on ? 1 : flowing ? 0.45 : 0.14}
                   strokeWidth={on ? 1.75 : 1.25}
                   strokeLinecap="round"
                   className="transition-[stroke,stroke-opacity] duration-200 motion-reduce:transition-none"
                 />
-                {on && !reducedMotion && (
-                  <circle r="3.5" fill="var(--hub)" stroke="var(--card)" strokeWidth="1.5">
-                    <animateMotion dur="1.6s" repeatCount="indefinite" path={d} />
+                {flowing && !reducedMotion && (
+                  <circle r={on ? 3.5 : 2.75} fill="var(--hub)" stroke="var(--card)" strokeWidth="1.5">
+                    {/* A negative start staggers the dots, so they do not move in step. */}
+                    <animateMotion dur="1.6s" begin={`-${((index * 0.37) % 1.6).toFixed(2)}s`} repeatCount="indefinite" path={d} />
                   </circle>
                 )}
               </g>
