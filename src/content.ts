@@ -48,7 +48,7 @@ export const nodes: MapNode[] = [
   { id: 'chat', label: 'Runneth chat', kind: 'Web chat', group: 'surface', side: 'left' },
   { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center', logo: '/runneth-logo.svg', href: runneth },
   { id: 'motion', label: 'Motion data', kind: 'Ad performance', group: 'data', side: 'right' },
-  { id: 'mcp', label: 'Agents & MCP servers', kind: 'Over MCP', group: 'tools', side: 'right' },
+  { id: 'mcp', label: 'Remote MCP servers', kind: 'OAuth, keys, or headers', group: 'tools', side: 'right' },
   { id: 'apps', label: 'Business apps', kind: 'One OAuth sign-in', group: 'apps', side: 'right' },
 ];
 
