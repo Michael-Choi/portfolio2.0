@@ -4,7 +4,7 @@ import { Experience } from '@/components/Experience';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { HeroConstellation } from '@/components/HeroConstellation';
-import { HeroGlobe } from '@/components/HeroGlobe';
+import { HeroClean } from '@/components/HeroClean';
 import { HeroPaper } from '@/components/HeroPaper';
 import { LookPicker } from '@/components/LookPicker';
 import { Principles } from '@/components/Principles';
@@ -17,7 +17,7 @@ const look = readLook();
 
 const heroes = {
   constellation: HeroConstellation,
-  globe: HeroGlobe,
+  clean: HeroClean,
   paper: HeroPaper,
 };
 

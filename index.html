@@ -30,7 +30,7 @@
     <script>
       // Apply the design option and a saved theme before first paint, so the page does not flash.
       const look = new URLSearchParams(location.search).get('look');
-      document.documentElement.dataset.look = ['constellation', 'globe', 'paper'].includes(look) ? look : 'constellation';
+      document.documentElement.dataset.look = ['constellation', 'clean', 'paper'].includes(look) ? look : 'clean';
       try {
         const theme = localStorage.getItem('theme');
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;

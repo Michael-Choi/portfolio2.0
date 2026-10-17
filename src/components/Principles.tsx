@@ -1,4 +1,4 @@
-import { principles } from '@/content';
+import { principles, recognition } from '@/content';
 import { Section } from './Section';
 
 export const Principles = () => (
@@ -12,5 +12,14 @@ export const Principles = () => (
         </article>
       ))}
     </div>
+    <h3 className="mt-14 font-mono text-xs uppercase tracking-[0.18em] text-muted">What teammates say</h3>
+    <ul className="mt-4 divide-y divide-line border-y border-line">
+      {recognition.map((line) => (
+        <li key={line} className="flex gap-3 py-4 text-pretty leading-relaxed">
+          <span aria-hidden="true" className="mt-[0.55em] size-1.5 shrink-0 rounded-full bg-accent" />
+          {line}
+        </li>
+      ))}
+    </ul>
   </Section>
 );

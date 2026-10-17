@@ -101,8 +101,8 @@
   --term-line: #1b232c;
 }
 
-/* Option B, Globe: bright product page with a coral accent. */
-:root[data-look='globe'] {
+/* Option B, Clean: bright product page with a coral accent. */
+:root[data-look='clean'] {
   color-scheme: light;
   --display-font: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
   --display-weight: 600;
