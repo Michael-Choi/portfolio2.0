@@ -7,6 +7,7 @@ export const profile = {
   email: 'michael@michaelchoi.ca',
   github: 'https://github.com/Michael-Choi',
   linkedin: 'https://www.linkedin.com/in/michael-b-choi/',
+  x: 'https://x.com/mikechoi',
 };
 
 export const intro = [

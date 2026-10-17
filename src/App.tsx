@@ -69,6 +69,20 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
+  // A thin divider appears under the diagram only while it is pinned. A sentinel just above the
+  // pinned block leaves the viewport at the moment the block sticks.
+  const sentinel = useRef<HTMLDivElement>(null);
+  const [pinned, setPinned] = useState(false);
+  useEffect(() => {
+    const element = sentinel.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setPinned(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   const activeIndex = hovered ?? scrolled;
   const active = activeIndex === null ? null : work[activeIndex].path;
 
@@ -88,13 +102,15 @@ export default function App() {
 
       <section aria-labelledby="work-title" className="mt-10">
         {/* The diagram stays pinned while the projects scroll under it. */}
-        <div className="sticky top-0 z-10 bg-paper pb-8 pt-6">
+        <div ref={sentinel} aria-hidden="true" className="h-px" />
+        <div
+          className={`sticky top-0 z-10 -mx-6 bg-paper px-6 pb-6 pt-6 transition-[box-shadow] duration-200 ${
+            pinned ? 'shadow-[0_1px_0_var(--line)]' : ''
+          }`}
+        >
           <IntegrationDiagram active={active} />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 -bottom-6 h-6 bg-gradient-to-b from-paper to-transparent"
-          />
         </div>
+        <div className="mt-4" />
         <Heading>
           <span id="work-title">Selected work</span>
         </Heading>
@@ -144,6 +160,9 @@ export default function App() {
           </a>
           <External href={profile.linkedin} className="underline decoration-line underline-offset-4 hover:decoration-ink">
             LinkedIn
+          </External>
+          <External href={profile.x} className="underline decoration-line underline-offset-4 hover:decoration-ink">
+            X
           </External>
           <External href={profile.github} className="underline decoration-line underline-offset-4 hover:decoration-ink">
             GitHub
