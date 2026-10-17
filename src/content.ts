@@ -20,7 +20,7 @@ export const intro: Rich[] = [
   [
     'At Motion, I work on ',
     { text: 'Runneth', href: runneth },
-    ', our AI agent for creative strategy. Most days I also work alongside several coding agents and review their work like a lead reviews a team.',
+    ', our AI agent for creative strategy. Most days I’m also running a few coding agents and reviewing their work the way I’d review a team’s.',
   ],
 ];
 
@@ -87,33 +87,33 @@ export const workYear = '2026';
 export const work: WorkItem[] = [
   {
     title: 'Motion MCP server',
-    text: 'Created the MCP server that brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. It is listed in both the Claude and ChatGPT app directories.',
+    text: 'Created Motion’s MCP server. Claude, ChatGPT, and any other MCP client can now work with Motion ad data, and it’s listed in both app directories.',
     href: 'https://claude.com/connectors/motion',
     path: ['claude-motion', 'chatgpt-motion', 'agents-motion'],
   },
   {
     title: 'Runneth MCP',
-    text: 'Launched Runneth as a public MCP server. Any AI agent can now hand it creative strategy work.',
+    text: 'Launched Runneth’s public MCP server. Now other agents can hand off creative strategy work to it.',
     path: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth', ...outOfRunneth],
   },
   {
     title: 'MCP support for Runneth',
-    text: 'Designed and built Runneth’s MCP client. It connects to other agents and MCP servers with OAuth, client ID and secret, or custom auth headers.',
+    text: 'Designed and built Runneth’s MCP client. It plugs into other agents and MCP servers, whether they use OAuth, a client ID and secret, or custom auth headers.',
     path: [...intoRunneth, 'runneth-mcp'],
   },
   {
     title: 'Business app integrations',
-    text: 'Took business app integrations from zero to launch: one OAuth sign-in connects Runneth to a customer’s business apps.',
+    text: 'Took business app integrations from zero to launch. One OAuth sign-in, and Runneth can use the apps a customer already works in.',
     path: [...intoRunneth, 'runneth-apps'],
   },
   {
     title: 'Runneth in Slack',
-    text: 'Made Runneth’s Slack replies fast and reliable. Queue wait fell from about 19 seconds to near zero.',
+    text: 'Made Runneth’s Slack replies fast and reliable. Queue wait went from about 19 seconds to almost nothing.',
     path: ['slack-runneth'],
   },
   {
     title: 'Sign-in and security',
-    text: 'Moved Motion to revocable sessions, shipped two-factor sign-in, and fixed security-assessment findings.',
+    text: 'Moved Motion to revocable sessions, shipped two-factor sign-in, and closed out the findings from a security assessment.',
     // Sign-in guards every way into Runneth and every system it reaches.
     path: [...intoRunneth, ...outOfRunneth],
   },
