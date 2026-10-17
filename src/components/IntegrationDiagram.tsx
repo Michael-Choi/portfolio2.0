@@ -1,11 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { edges, nodes, type Group, type MapNode } from '@/content';
 
 type Box = { left: number; right: number; top: number; bottom: number; cx: number; cy: number };
 type State = 'rest' | 'on' | 'off';
-
-/** Resting lean of the card, in degrees. */
-const REST_TILT = 8;
 
 const FILL: Record<Group, string> = {
   hub: 'bg-hub',
@@ -44,7 +41,7 @@ function link(a: Box, b: Box) {
   return `M${a.cx},${sy} C${a.cx},${my} ${b.cx},${my} ${b.cx},${ey}`;
 }
 
-const NodeCard = ({ node, state }: { node: MapNode; state: State }) => {
+const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State; className?: string }) => {
   const hub = node.group === 'hub';
   return (
     <span
@@ -55,7 +52,7 @@ const NodeCard = ({ node, state }: { node: MapNode; state: State }) => {
           : `pr-3 shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_16px_-10px_rgb(0_0_0/0.2)] ${
               state === 'on' ? 'border-ink/25' : 'border-line'
             }`
-      } ${state === 'off' ? 'opacity-40' : ''}`}
+      } ${state === 'off' ? 'opacity-40' : ''} ${className}`}
     >
       <span
         aria-hidden="true"
@@ -84,7 +81,6 @@ const NodeCard = ({ node, state }: { node: MapNode; state: State }) => {
 /** The integrations around Runneth. Highlights the edges in `active` for the current project. */
 export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
   const box = useRef<HTMLDivElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
   const [boxes, setBoxes] = useState<Record<string, Box>>({});
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -97,14 +93,15 @@ export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
     return () => media.removeEventListener('change', onChange);
   }, []);
 
-  // Lines follow the cards' real positions. Layout offsets ignore the 3D tilt, so the lines
-  // match the cards on the card's own plane.
+  // Lines follow the cards' real positions, so they track the responsive layout.
   useLayoutEffect(() => {
     const element = box.current;
     if (!element) return;
     const measure = () => {
       const next: Record<string, Box> = {};
       element.querySelectorAll<HTMLElement>('[data-node]').forEach((card) => {
+        // Motion data renders in two places, one per layout. Skip the hidden copy.
+        if (card.offsetWidth === 0) return;
         let left = 0;
         let top = 0;
         for (let node: HTMLElement | null = card; node && node !== element; node = node.offsetParent as HTMLElement | null) {
@@ -136,112 +133,89 @@ export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
   const litNodes = new Set([...lit].flatMap((key) => key.split('-')));
   const stateOf = (id: string): State => (lit.size === 0 ? 'rest' : litNodes.has(id) ? 'on' : 'off');
   const column = (side: MapNode['side']) => nodes.filter((node) => node.side === side);
-
-  // The card leans back a little and tilts a few degrees toward the pointer. Touch and reduced
-  // motion keep the resting tilt. The style changes directly, so pointer moves cause no re-render.
-  const tilt = (event: PointerEvent<HTMLDivElement>) => {
-    if (reducedMotion || event.pointerType !== 'mouse' || !stage.current) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - 0.5;
-    const y = (event.clientY - rect.top) / rect.height - 0.5;
-    stage.current.style.setProperty('--tilt-x', `${(REST_TILT - y * 8).toFixed(2)}deg`);
-    stage.current.style.setProperty('--tilt-y', `${(x * 10).toFixed(2)}deg`);
-  };
-  const settle = () => {
-    stage.current?.style.setProperty('--tilt-x', `${REST_TILT}deg`);
-    stage.current?.style.setProperty('--tilt-y', '0deg');
-  };
+  const motion = nodes.find((node) => node.id === 'motion')!;
 
   return (
     <figure>
-      <div className="relative [perspective:1400px]" onPointerMove={tilt} onPointerLeave={settle}>
-        {/* A soft shadow under the card sells the depth. */}
+      <div
+        ref={box}
+        className="relative rounded-3xl border border-line bg-card px-4 py-6 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-28px_rgb(0_0_0/0.25)] sm:px-7 sm:py-7"
+      >
+        {/* A faint dot grid, like a design canvas. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-12 -bottom-3 h-10 rounded-[50%] bg-ink/10 blur-2xl dark:bg-black/40"
+          className="pointer-events-none absolute inset-0 [background-image:radial-gradient(var(--line)_1.1px,transparent_1.3px)] [background-size:18px_18px] [mask-image:radial-gradient(80%_80%_at_50%_50%,black_40%,transparent_100%)]"
         />
-        <div
-          ref={stage}
-          className="transition-transform duration-300 ease-out [transform-style:preserve-3d] motion-reduce:transition-none"
-          style={{
-            transform: 'rotateX(var(--tilt-x, 8deg)) rotateY(var(--tilt-y, 0deg))',
-            transformOrigin: '50% 60%',
-          }}
+
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          width={size.width}
+          height={size.height}
         >
-          <div
-            ref={box}
-            className="relative rounded-3xl border border-line bg-card px-4 py-6 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-28px_rgb(0_0_0/0.25)] [transform-style:preserve-3d] sm:px-7 sm:py-7"
-          >
-            {/* A faint dot grid, like a design canvas. */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 [background-image:radial-gradient(var(--line)_1.1px,transparent_1.3px)] [background-size:18px_18px] [mask-image:radial-gradient(80%_80%_at_50%_50%,black_40%,transparent_100%)]"
-            />
+          <defs>
+            <filter id="path-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" />
+            </filter>
+          </defs>
+          {edges.map(([from, to]) => {
+            const a = boxes[from];
+            const b = boxes[to];
+            if (!a || !b) return null;
+            const key = `${from}-${to}`;
+            const d = link(a, b);
+            const on = lit.has(key);
+            return (
+              <g key={key}>
+                {on && <path d={d} fill="none" stroke="var(--hub)" strokeOpacity={0.35} strokeWidth={5} filter="url(#path-glow)" />}
+                <path
+                  d={d}
+                  fill="none"
+                  stroke={on ? 'var(--hub)' : 'var(--muted)'}
+                  strokeOpacity={on ? 1 : lit.size > 0 ? 0.14 : 0.3}
+                  strokeWidth={on ? 1.75 : 1.25}
+                  strokeLinecap="round"
+                  className="transition-[stroke,stroke-opacity] duration-200 motion-reduce:transition-none"
+                />
+                {on && !reducedMotion && (
+                  <circle r="3.5" fill="var(--hub)" stroke="var(--card)" strokeWidth="1.5">
+                    <animateMotion dur="1.6s" repeatCount="indefinite" path={d} />
+                  </circle>
+                )}
+              </g>
+            );
+          })}
+        </svg>
 
-            <svg
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
-              width={size.width}
-              height={size.height}
-            >
-              <defs>
-                <filter id="path-glow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3" />
-                </filter>
-              </defs>
-              {edges.map(([from, to]) => {
-                const a = boxes[from];
-                const b = boxes[to];
-                if (!a || !b) return null;
-                const key = `${from}-${to}`;
-                const d = link(a, b);
-                const on = lit.has(key);
-                return (
-                  <g key={key}>
-                    {on && <path d={d} fill="none" stroke="var(--hub)" strokeOpacity={0.35} strokeWidth={5} filter="url(#path-glow)" />}
-                    <path
-                      d={d}
-                      fill="none"
-                      stroke={on ? 'var(--hub)' : 'var(--muted)'}
-                      strokeOpacity={on ? 1 : lit.size > 0 ? 0.14 : 0.3}
-                      strokeWidth={on ? 1.75 : 1.25}
-                      strokeLinecap="round"
-                      className="transition-[stroke,stroke-opacity] duration-200 motion-reduce:transition-none"
-                    />
-                    {on && !reducedMotion && (
-                      <circle r="3.5" fill="var(--hub)" stroke="var(--card)" strokeWidth="1.5">
-                        <animateMotion dur="1.6s" repeatCount="indefinite" path={d} />
-                      </circle>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* The cards float a little above the card surface. */}
-            <div className="relative flex flex-col items-center gap-8 [transform:translateZ(12px)] sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-x-6 sm:gap-y-0">
-              <div className="flex flex-col items-center gap-2 sm:items-start sm:gap-2.5">
-                <p className="mb-1 text-xs font-medium text-muted">Where people ask</p>
-                <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-start sm:gap-2.5">
-                  {column('left').map((node) => (
-                    <NodeCard key={node.id} node={node} state={stateOf(node.id)} />
-                  ))}
-                </div>
-              </div>
-              {/* Motion data sits above Runneth on wide screens and beside it on phones. */}
-              <div className="flex items-center gap-5 sm:flex-col sm:gap-12 sm:justify-self-center">
-                {column('center').map((node) => (
-                  <NodeCard key={node.id} node={node} state={stateOf(node.id)} />
-                ))}
-              </div>
-              <div className="flex flex-col items-center gap-2 sm:items-end sm:gap-2.5">
-                <p className="mb-1 text-xs font-medium text-muted">What Runneth reaches</p>
-                <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-end sm:gap-2.5">
-                  {column('right').map((node) => (
-                    <NodeCard key={node.id} node={node} state={stateOf(node.id)} />
-                  ))}
-                </div>
-              </div>
+        <div className="relative flex flex-col items-center gap-8 sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-x-6 sm:gap-y-0">
+          <div className="flex flex-col items-center gap-2 sm:items-start sm:gap-2.5">
+            <p className="mb-1 text-xs font-medium text-muted">Where people ask</p>
+            <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-start sm:gap-2.5">
+              {column('left').map((node) => (
+                <NodeCard key={node.id} node={node} state={stateOf(node.id)} />
+              ))}
+            </div>
+          </div>
+          {/* Runneth sits a little low, so the Motion MCP lines clear it on their way to Motion data.
+              On phones, Motion data sits beside Runneth, so those lines never run behind it. */}
+          <div className="flex items-center gap-5 sm:mt-14 sm:justify-self-center">
+            <NodeCard node={motion} state={stateOf(motion.id)} className="sm:hidden" />
+            {column('center').map((node) => (
+              <NodeCard key={node.id} node={node} state={stateOf(node.id)} />
+            ))}
+          </div>
+          <div className="flex flex-col items-center gap-2 sm:items-end sm:gap-2.5">
+            <p className="mb-1 text-xs font-medium text-muted">What Runneth reaches</p>
+            <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-end sm:gap-2.5">
+              {/* Extra space under Motion data lifts it, so the lines from the assistants pass above Runneth. */}
+              {column('right').map((node) => (
+                <NodeCard
+                  key={node.id}
+                  node={node}
+                  state={stateOf(node.id)}
+                  className={node.id === 'motion' ? 'max-sm:hidden sm:mb-6' : ''}
+                />
+              ))}
             </div>
           </div>
         </div>

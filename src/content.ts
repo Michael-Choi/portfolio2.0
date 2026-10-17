@@ -24,16 +24,16 @@ export type MapNode = {
   side: 'left' | 'center' | 'right';
 };
 
-// The integration diagram. Left: where people and agents ask. Center: Motion data and Runneth.
-// Right: what Runneth reaches.
+// The integration diagram. Left: where people and agents ask. Center: Runneth. Right: what
+// Runneth reaches. Assistants also reach Motion data directly, through the Motion MCP server.
 export const nodes: MapNode[] = [
   { id: 'claude', label: 'Claude', kind: 'Assistant', group: 'surface', side: 'left' },
   { id: 'chatgpt', label: 'ChatGPT', kind: 'Assistant', group: 'surface', side: 'left' },
   { id: 'agents', label: 'Other agents', kind: 'Any MCP client', group: 'surface', side: 'left' },
   { id: 'slack', label: 'Slack', kind: 'Team chat', group: 'surface', side: 'left' },
   { id: 'chat', label: 'Runneth chat', kind: 'Web chat', group: 'surface', side: 'left' },
-  { id: 'motion', label: 'Motion data', kind: 'Ad performance', group: 'data', side: 'center' },
   { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center' },
+  { id: 'motion', label: 'Motion data', kind: 'Ad performance', group: 'data', side: 'right' },
   { id: 'mcp', label: 'Agents & MCP servers', kind: 'Over MCP', group: 'tools', side: 'right' },
   { id: 'apps', label: 'Business apps', kind: 'One OAuth sign-in', group: 'apps', side: 'right' },
 ];
