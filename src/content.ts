@@ -64,7 +64,7 @@ export type WorkItem = {
 export const work: WorkItem[] = [
   {
     title: 'Motion MCP server',
-    text: 'Built the MCP server that brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. Listed in Claude’s connector directory.',
+    text: 'Built the MCP server that brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. Listed in both the Claude and ChatGPT app directories.',
     year: '2026',
     href: 'https://claude.com/connectors/motion',
     path: ['claude-motion', 'chatgpt-motion', 'agents-motion'],
@@ -77,7 +77,7 @@ export const work: WorkItem[] = [
   },
   {
     title: 'MCP support for Runneth',
-    text: 'Built MCP support so Runneth can connect to other agents and MCP servers, with OAuth.',
+    text: 'Built MCP support so Runneth can connect to other agents and MCP servers, with OAuth, client ID and secret, or custom auth headers.',
     year: '2026',
     path: ['chat-runneth', 'runneth-mcp'],
   },
