@@ -1,0 +1,348 @@
+<!doctype html>
+<!-- The 1200×630 social preview image. Render it with brand/render.sh into public/og.png.
+     The diagram copies the layout, nodes, and edges of src/components/IntegrationDiagram.tsx. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: 'Geist Sans';
+        font-weight: 400;
+        src: url('../node_modules/@fontsource/geist-sans/files/geist-sans-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Geist Sans';
+        font-weight: 500;
+        src: url('../node_modules/@fontsource/geist-sans/files/geist-sans-latin-500-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Geist Sans';
+        font-weight: 600;
+        src: url('../node_modules/@fontsource/geist-sans/files/geist-sans-latin-600-normal.woff2') format('woff2');
+      }
+      :root {
+        --paper: #fbfbfa;
+        --card: #ffffff;
+        --ink: #111113;
+        --muted: #6b6e76;
+        --line: #e6e6e3;
+        --hub: #f0532a;
+        --surface: #2f6fdf;
+        --data: #c7860f;
+        --tools: #7c4ddb;
+        --apps: #0c9a8f;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: 'Geist Sans', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 52px;
+        padding: 64px 56px 64px 72px;
+      }
+      .text {
+        flex: 1;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+      }
+      .name {
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .role {
+        margin-top: 6px;
+        font-size: 20px;
+        color: var(--muted);
+      }
+      .headline {
+        margin-top: auto;
+        font-size: 44px;
+        line-height: 1.12;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+      }
+      .site {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        color: var(--muted);
+      }
+      .site i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--hub);
+      }
+
+      /* The diagram, at the site's sizes, scaled up as one piece. */
+      .frame {
+        flex: none;
+        position: relative;
+      }
+      .box {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 592px;
+        box-sizing: border-box;
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--card);
+        box-shadow:
+          0 1px 2px rgb(0 0 0 / 0.04),
+          0 24px 48px -28px rgb(0 0 0 / 0.25);
+        transform-origin: 0 0;
+      }
+      .dots {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background-image: radial-gradient(var(--line) 1.1px, transparent 1.3px);
+        background-size: 18px 18px;
+        mask-image: radial-gradient(80% 80% at 50% 50%, black 40%, transparent 100%);
+      }
+      .lines {
+        position: absolute;
+        inset: 0;
+        overflow: visible;
+      }
+      .grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        column-gap: 24px;
+      }
+      .col {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .col.left {
+        align-items: flex-start;
+      }
+      .col.right {
+        align-items: flex-end;
+      }
+      .col p {
+        margin: 0 0 4px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      /* Runneth sits low, and Motion data sits high, so the Motion MCP lines pass above Runneth. */
+      .center {
+        margin-top: 56px;
+        justify-self: center;
+      }
+      [data-node='motion'] {
+        margin-bottom: 24px;
+      }
+      .node {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+        padding: 6px 12px 6px 6px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card);
+        line-height: 1.25;
+        box-shadow:
+          0 1px 2px rgb(0 0 0 / 0.05),
+          0 6px 16px -10px rgb(0 0 0 / 0.2);
+      }
+      .node.on {
+        border-color: rgb(17 17 19 / 0.25);
+      }
+      .node.hub {
+        padding-right: 16px;
+        border-color: color-mix(in oklab, var(--hub) 40%, transparent);
+        box-shadow:
+          0 0 0 5px color-mix(in oklab, var(--hub) 12%, transparent),
+          0 12px 28px -12px color-mix(in oklab, var(--hub) 55%, transparent);
+      }
+      .icon {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        color: #fff;
+      }
+      .icon svg {
+        width: 16px;
+        height: 16px;
+      }
+      .hub .icon {
+        width: 32px;
+        height: 32px;
+      }
+      .hub .icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .hub .label {
+        font-size: 14px;
+      }
+      .kind {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="text">
+      <div class="name">Michael Choi</div>
+      <div class="role">Senior Software Engineer at Motion</div>
+      <div class="headline">I build the integrations that connect AI agents to the tools people already use.</div>
+      <div class="site"><i></i>michaelchoi.ca</div>
+    </div>
+
+    <div class="frame" id="frame">
+      <div class="box" id="box">
+        <div class="dots"></div>
+        <svg class="lines" id="lines"></svg>
+        <div class="grid">
+          <div class="col left" id="left"><p>Where people ask</p></div>
+          <div class="center" id="center"></div>
+          <div class="col right" id="right"><p>What Runneth reaches</p></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // The diagram is drawn at the site's sizes, then scaled by SCALE to read well as a thumbnail.
+      const SCALE = 1.04;
+
+      // Copied from src/content.ts and src/components/IntegrationDiagram.tsx.
+      const NODES = [
+        { id: 'claude', label: 'Claude', kind: 'Assistant', group: 'surface', side: 'left' },
+        { id: 'chatgpt', label: 'ChatGPT', kind: 'Assistant', group: 'surface', side: 'left' },
+        { id: 'agents', label: 'Other agents', kind: 'Any MCP client', group: 'surface', side: 'left' },
+        { id: 'slack', label: 'Slack', kind: 'Team chat', group: 'surface', side: 'left' },
+        { id: 'chat', label: 'Runneth chat', kind: 'Web chat', group: 'surface', side: 'left' },
+        { id: 'runneth', label: 'Runneth', kind: 'AI agent', group: 'hub', side: 'center' },
+        { id: 'motion', label: 'Motion data', kind: 'Ad performance', group: 'data', side: 'right' },
+        { id: 'mcp', label: 'Agents & MCP servers', kind: 'Over MCP', group: 'tools', side: 'right' },
+        { id: 'apps', label: 'Business apps', kind: 'One OAuth sign-in', group: 'apps', side: 'right' },
+      ];
+      const EDGES = [
+        ['claude', 'motion'],
+        ['chatgpt', 'motion'],
+        ['agents', 'motion'],
+        ['claude', 'runneth'],
+        ['agents', 'runneth'],
+        ['slack', 'runneth'],
+        ['chat', 'runneth'],
+        ['runneth', 'motion'],
+        ['runneth', 'mcp'],
+        ['runneth', 'apps'],
+      ];
+      const ICONS = {
+        runneth: 'M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4',
+        claude: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z',
+        chatgpt: 'M12 4a8 8 0 0 1 6.9 12L20 20l-4-1.1A8 8 0 1 1 12 4z',
+        agents: 'M7 9h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM12 5v4M9.5 14h.01M14.5 14h.01',
+        slack: 'M10 4 8 20M16 4l-2 16M4.5 9h15M4 15h15',
+        chat: 'M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H10l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
+        motion: 'M5 20V10M12 20V4M19 20v-7',
+        mcp: 'M9 3v5M15 3v5M7 8h10v3a5 5 0 0 1-10 0zM12 16v5',
+        apps: 'M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z',
+      };
+      // The highlighted path is the Runneth MCP project: agents hand work to Runneth, which reads Motion data.
+      const LIT = new Set(['claude-runneth', 'agents-runneth', 'runneth-motion']);
+      const LIT_NODES = new Set([...LIT].flatMap((key) => key.split('-')));
+
+      const box = document.getElementById('box');
+      for (const node of NODES) {
+        const card = document.createElement('span');
+        card.dataset.node = node.id;
+        card.className = `node ${node.group === 'hub' ? 'hub' : ''} ${LIT_NODES.has(node.id) ? 'on' : ''}`;
+        card.innerHTML =
+          `<span class="icon" style="background:var(--${node.group})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[node.id]}"/></svg></span>` +
+          `<span><span class="label">${node.label}</span><span class="kind">${node.kind}</span></span>`;
+        document.getElementById(node.side).appendChild(card);
+      }
+
+      // Same S-curve as the site.
+      function link(a, b) {
+        const dx = b.cx - a.cx;
+        const dy = b.cy - a.cy;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+          const sx = dx > 0 ? a.right : a.left;
+          const ex = dx > 0 ? b.left : b.right;
+          const mx = (sx + ex) / 2;
+          return `M${sx},${a.cy} C${mx},${a.cy} ${mx},${b.cy} ${ex},${b.cy}`;
+        }
+        const sy = dy > 0 ? a.bottom : a.top;
+        const ey = dy > 0 ? b.top : b.bottom;
+        const my = (sy + ey) / 2;
+        return `M${a.cx},${sy} C${a.cx},${my} ${b.cx},${my} ${b.cx},${ey}`;
+      }
+
+      document.fonts.ready.then(() => {
+        const boxes = {};
+        box.querySelectorAll('[data-node]').forEach((card) => {
+          let left = 0;
+          let top = 0;
+          for (let el = card; el && el !== box; el = el.offsetParent) {
+            left += el.offsetLeft;
+            top += el.offsetTop;
+          }
+          const width = card.offsetWidth;
+          const height = card.offsetHeight;
+          boxes[card.dataset.node] = { left, right: left + width, top, bottom: top + height, cx: left + width / 2, cy: top + height / 2 };
+        });
+
+        const lines = document.getElementById('lines');
+        let svg = '<defs><filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+        const dots = [];
+        for (const [from, to] of EDGES) {
+          const d = link(boxes[from], boxes[to]);
+          const on = LIT.has(`${from}-${to}`);
+          if (on) {
+            svg += `<path d="${d}" fill="none" stroke="var(--hub)" stroke-opacity="0.35" stroke-width="5" filter="url(#glow)"/>`;
+            dots.push(d);
+          }
+          svg += `<path d="${d}" fill="none" stroke="${on ? 'var(--hub)' : 'var(--muted)'}" stroke-opacity="${on ? 1 : 0.28}" stroke-width="${on ? 1.75 : 1.25}" stroke-linecap="round"/>`;
+        }
+        lines.innerHTML = svg;
+
+        // A still frame of the moving dot that the site draws along each lit path.
+        for (const d of dots) {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', d);
+          const point = path.getPointAtLength(path.getTotalLength() * 0.55);
+          lines.insertAdjacentHTML('beforeend', `<circle cx="${point.x}" cy="${point.y}" r="3.5" fill="var(--hub)" stroke="var(--card)" stroke-width="1.5"/>`);
+        }
+
+        const frame = document.getElementById('frame');
+        box.style.transform = `scale(${SCALE})`;
+        frame.style.width = `${box.offsetWidth * SCALE}px`;
+        frame.style.height = `${box.offsetHeight * SCALE}px`;
+      });
+    </script>
+  </body>
+</html>
