@@ -221,7 +221,7 @@ export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
         </div>
       </div>
       <figcaption className="mt-5 text-sm text-muted">
-        How the pieces connect. Scroll or hover the projects below to trace each path.
+        How the pieces connect. Scroll or hover the projects to trace each path.
       </figcaption>
     </figure>
   );
