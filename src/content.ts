@@ -69,6 +69,9 @@ export const edges: [string, string][] = [
 
 export const diagramCaption = 'How the pieces connect. Scroll or hover the projects to trace each path.';
 
+/** Every way into Runneth. Work that any of them can use lights them all. */
+const intoRunneth = edges.filter(([, to]) => to === 'runneth').map(([from, to]) => `${from}-${to}`);
+
 export type WorkItem = {
   title: string;
   text: string;
@@ -95,12 +98,12 @@ export const work: WorkItem[] = [
   {
     title: 'MCP support for Runneth',
     text: 'Built MCP support so Runneth can connect to other agents and MCP servers, with OAuth, client ID and secret, or custom auth headers.',
-    path: ['chat-runneth', 'runneth-mcp'],
+    path: [...intoRunneth, 'runneth-mcp'],
   },
   {
     title: 'Business app integrations',
     text: 'Built the integration layer that connects Runneth to a customer’s business apps with one OAuth sign-in.',
-    path: ['chat-runneth', 'runneth-apps'],
+    path: [...intoRunneth, 'runneth-apps'],
   },
   {
     title: 'Runneth in Slack',
@@ -111,16 +114,7 @@ export const work: WorkItem[] = [
     title: 'Sign-in and security',
     text: 'Moved Motion to revocable sessions, shipped two-factor sign-in, and fixed security-assessment findings.',
     // Sign-in guards every way into Runneth and every system it reaches.
-    path: [
-      'claude-runneth',
-      'chatgpt-runneth',
-      'agents-runneth',
-      'slack-runneth',
-      'chat-runneth',
-      'runneth-motion',
-      'runneth-mcp',
-      'runneth-apps',
-    ],
+    path: [...intoRunneth, 'runneth-motion', 'runneth-mcp', 'runneth-apps'],
   },
 ];
 
