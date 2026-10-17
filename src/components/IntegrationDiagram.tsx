@@ -30,16 +30,6 @@ function link(a: Box, b: Box) {
   return `M${a.cx},${sy} C${a.cx},${my} ${b.cx},${my} ${b.cx},${ey}`;
 }
 
-/** Claude to Motion data skips Runneth, so it arcs around the hub: over it, or down its left side. */
-function arc(a: Box, b: Box, hub: Box) {
-  if (a.bottom < hub.top) {
-    const left = Math.max(4, Math.min(a.left, b.left, hub.left) - 22);
-    return `M${a.left},${a.cy} C${left},${a.cy + 40} ${left},${b.cy - 40} ${b.left},${b.cy}`;
-  }
-  const top = Math.max(4, Math.min(a.top, b.top, hub.top) - 24);
-  return `M${a.right},${a.cy} C${a.right + 60},${top} ${b.left - 60},${top} ${b.left},${b.cy}`;
-}
-
 const Pill = ({ node, state }: { node: MapNode; state: 'rest' | 'on' | 'off' }) => {
   const hub = node.group === 'hub';
   return (
@@ -112,7 +102,6 @@ export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
   const stateOf = (id: string) => (!active || lit.size === 0 ? 'rest' : litNodes.has(id) ? 'on' : 'off');
 
   const column = (side: MapNode['side']) => nodes.filter((node) => node.side === side);
-  const hub = nodes.find((node) => node.side === 'hub')!;
 
   // The card leans back a little and tilts a few degrees toward the pointer. Touch and reduced
   // motion keep the resting tilt. The style changes directly, so pointer moves cause no re-render.
@@ -161,7 +150,7 @@ export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
                 const b = boxes[to];
                 if (!a || !b) return null;
                 const key = `${from}-${to}`;
-                const d = from === 'claude' && to === 'motion' ? arc(a, b, boxes[hub.id]) : link(a, b);
+                const d = link(a, b);
                 const on = lit.has(key);
                 return (
                   <g key={key}>
@@ -190,7 +179,12 @@ export const IntegrationDiagram = ({ active }: { active: string[] | null }) => {
                   <Pill key={node.id} node={node} state={stateOf(node.id)} />
                 ))}
               </div>
-              <Pill node={hub} state={stateOf(hub.id)} />
+              {/* Motion data sits above Runneth on wide screens and beside it on phones. */}
+              <div className="flex items-center gap-6 sm:flex-col sm:gap-10">
+                {column('center').map((node) => (
+                  <Pill key={node.id} node={node} state={stateOf(node.id)} />
+                ))}
+              </div>
               <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-end sm:gap-3">
                 {column('right').map((node) => (
                   <Pill key={node.id} node={node} state={stateOf(node.id)} />

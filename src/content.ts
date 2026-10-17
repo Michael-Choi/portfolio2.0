@@ -15,22 +15,27 @@ export const intro = [
 ];
 
 export type Group = 'hub' | 'surface' | 'data' | 'tools' | 'apps';
-export type MapNode = { id: string; label: string; group: Group; side: 'left' | 'hub' | 'right' };
+export type MapNode = { id: string; label: string; group: Group; side: 'left' | 'center' | 'right' };
 
-// The integration diagram. Left: where people and agents talk to Runneth. Right: what Runneth reaches.
+// The integration diagram. Left: assistants, agents, and chat surfaces. Center: Motion data and
+// Runneth. Right: the tools that Runneth reaches.
 export const nodes: MapNode[] = [
   { id: 'claude', label: 'Claude', group: 'surface', side: 'left' },
+  { id: 'chatgpt', label: 'ChatGPT', group: 'surface', side: 'left' },
   { id: 'agents', label: 'Other agents', group: 'surface', side: 'left' },
   { id: 'slack', label: 'Slack', group: 'surface', side: 'left' },
   { id: 'chat', label: 'Runneth chat', group: 'surface', side: 'left' },
-  { id: 'runneth', label: 'Runneth', group: 'hub', side: 'hub' },
-  { id: 'motion', label: 'Motion data', group: 'data', side: 'right' },
+  { id: 'motion', label: 'Motion data', group: 'data', side: 'center' },
+  { id: 'runneth', label: 'Runneth', group: 'hub', side: 'center' },
   { id: 'mcp', label: 'MCP servers', group: 'tools', side: 'right' },
   { id: 'apps', label: 'Business apps', group: 'apps', side: 'right' },
 ];
 
-/** Edges as [from, to]. claude→motion is the Motion MCP server, drawn as an arc over Runneth. */
+/** Edges as [from, to]. The edges into Motion data are the Motion MCP server. */
 export const edges: [string, string][] = [
+  ['claude', 'motion'],
+  ['chatgpt', 'motion'],
+  ['agents', 'motion'],
   ['claude', 'runneth'],
   ['agents', 'runneth'],
   ['slack', 'runneth'],
@@ -38,7 +43,6 @@ export const edges: [string, string][] = [
   ['runneth', 'motion'],
   ['runneth', 'mcp'],
   ['runneth', 'apps'],
-  ['claude', 'motion'],
 ];
 
 export type WorkItem = {
@@ -53,10 +57,10 @@ export type WorkItem = {
 export const work: WorkItem[] = [
   {
     title: 'Motion MCP server',
-    text: 'Brings Motion’s ad data into Claude. Listed in Claude’s connector directory.',
+    text: 'Brings Motion’s ad data into Claude, ChatGPT, and any agent that speaks MCP. Listed in Claude’s connector directory.',
     year: '2026',
     href: 'https://claude.com/connectors/motion',
-    path: ['claude-motion'],
+    path: ['claude-motion', 'chatgpt-motion', 'agents-motion'],
   },
   {
     title: 'Runneth MCP',
