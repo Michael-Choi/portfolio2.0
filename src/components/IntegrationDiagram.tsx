@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { edges, nodes, type Group, type MapNode } from '@/content';
+import { useMediaQuery } from '@/useMediaQuery';
 
 type Box = { left: number; right: number; top: number; bottom: number; cx: number; cy: number };
 type State = 'rest' | 'on' | 'off';
@@ -24,16 +25,15 @@ const ICONS: Record<string, string> = {
   apps: 'M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z',
 };
 
-/** An S-curve between two cards, horizontal on wide screens and vertical on phones. */
-function link(a: Box, b: Box) {
-  const dx = b.cx - a.cx;
-  const dy = b.cy - a.cy;
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    const sx = dx > 0 ? a.right : a.left;
-    const ex = dx > 0 ? b.left : b.right;
+/** An S-curve between two cards: sideways between columns, or downward between the tiers on phones. */
+function link(a: Box, b: Box, tiers: boolean) {
+  if (!tiers) {
+    const sx = b.cx > a.cx ? a.right : a.left;
+    const ex = b.cx > a.cx ? b.left : b.right;
     const mx = (sx + ex) / 2;
     return `M${sx},${a.cy} C${mx},${a.cy} ${mx},${b.cy} ${ex},${b.cy}`;
   }
+  const dy = b.cy - a.cy;
   const sy = dy > 0 ? a.bottom : a.top;
   const ey = dy > 0 ? b.top : b.bottom;
   const my = (sy + ey) / 2;
@@ -42,14 +42,15 @@ function link(a: Box, b: Box) {
 
 const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State; className?: string }) => {
   const hub = node.group === 'hub';
-  const cardClass = `relative inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl border bg-card py-1.5 pl-1.5 transition-[opacity,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
+  // On phones, a card stacks its icon above a short label, so a row of five fits across the screen.
+  const cardClass = `relative rounded-xl border bg-card transition-[opacity,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
     hub
-      ? 'border-hub/40 pr-4 shadow-[0_0_0_5px_color-mix(in_oklab,var(--hub)_12%,transparent),0_12px_28px_-12px_color-mix(in_oklab,var(--hub)_55%,transparent)]'
-      : `pr-3 shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_16px_-10px_rgb(0_0_0/0.2)] ${
+      ? 'inline-flex items-center gap-2.5 whitespace-nowrap border-hub/40 py-1.5 pl-1.5 pr-4 shadow-[0_0_0_5px_color-mix(in_oklab,var(--hub)_12%,transparent),0_12px_28px_-12px_color-mix(in_oklab,var(--hub)_55%,transparent)]'
+      : `flex flex-col items-center gap-1 px-1 pb-1.5 pt-2 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_16px_-10px_rgb(0_0_0/0.2)] sm:inline-flex sm:flex-row sm:gap-2.5 sm:whitespace-nowrap sm:py-1.5 sm:pl-1.5 sm:pr-3 sm:text-left ${
           state === 'on' ? 'border-ink/25' : 'border-line'
         }`
   } ${node.href ? 'hover:border-hub' : ''} ${state === 'off' ? 'opacity-40' : ''} ${className}`;
-  const size = hub ? 'size-8' : 'size-6 sm:size-7';
+  const size = hub ? 'size-8' : 'size-7';
   const body = (
     <>
       {node.logo ? (
@@ -58,7 +59,7 @@ const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State
         <span aria-hidden="true" className={`grid shrink-0 place-items-center rounded-lg text-white ${FILL[node.group]} ${size}`}>
           <svg
             viewBox="0 0 24 24"
-            className={hub ? 'size-[18px]' : 'size-3.5 sm:size-4'}
+            className={hub ? 'size-[18px]' : 'size-4'}
             fill="none"
             stroke="currentColor"
             strokeWidth="1.9"
@@ -70,7 +71,7 @@ const NodeCard = ({ node, state, className = '' }: { node: MapNode; state: State
         </span>
       )}
       <span className="leading-tight">
-        <span className={`block font-medium ${hub ? 'text-sm' : 'text-[12.5px] sm:text-[13px]'}`}>{node.label}</span>
+        <span className={`block font-medium ${hub ? 'text-sm' : 'text-[11px] sm:text-[13px]'}`}>{node.label}</span>
         <span className="hidden text-xs text-muted sm:block">{node.kind}</span>
       </span>
     </>
@@ -93,6 +94,8 @@ export const IntegrationDiagram = ({ active, caption }: { active: string[] | nul
   const [boxes, setBoxes] = useState<Record<string, Box>>({});
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Below Tailwind's sm breakpoint, the diagram stacks in three tiers instead of three columns.
+  const tiers = !useMediaQuery('(min-width: 40rem)');
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -109,8 +112,6 @@ export const IntegrationDiagram = ({ active, caption }: { active: string[] | nul
     const measure = () => {
       const next: Record<string, Box> = {};
       element.querySelectorAll<HTMLElement>('[data-node]').forEach((card) => {
-        // Motion data renders in two places, one per layout. Skip the hidden copy.
-        if (card.offsetWidth === 0) return;
         let left = 0;
         let top = 0;
         for (let node: HTMLElement | null = card; node && node !== element; node = node.offsetParent as HTMLElement | null) {
@@ -142,13 +143,12 @@ export const IntegrationDiagram = ({ active, caption }: { active: string[] | nul
   const litNodes = new Set([...lit].flatMap((key) => key.split('-')));
   const stateOf = (id: string): State => (lit.size === 0 ? 'rest' : litNodes.has(id) ? 'on' : 'off');
   const column = (side: MapNode['side']) => nodes.filter((node) => node.side === side);
-  const motion = nodes.find((node) => node.id === 'motion')!;
 
   return (
     <figure>
       <div
         ref={box}
-        className="relative rounded-3xl border border-line bg-card px-4 py-6 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-28px_rgb(0_0_0/0.25)] sm:px-7 sm:py-7"
+        className="relative rounded-3xl border border-line bg-card px-3 py-5 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-28px_rgb(0_0_0/0.25)] sm:px-7 sm:py-7"
       >
         {/* A faint dot grid, like a design canvas. */}
         <div
@@ -172,7 +172,7 @@ export const IntegrationDiagram = ({ active, caption }: { active: string[] | nul
             const b = boxes[to];
             if (!a || !b) return null;
             const key = `${from}-${to}`;
-            const d = link(a, b);
+            const d = link(a, b, tiers);
             const on = lit.has(key);
             return (
               <g key={key}>
@@ -196,34 +196,32 @@ export const IntegrationDiagram = ({ active, caption }: { active: string[] | nul
           })}
         </svg>
 
-        <div className="relative flex flex-col items-center gap-8 sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-x-6 sm:gap-y-0">
-          <div className="flex flex-col items-center gap-2 sm:items-start sm:gap-2.5">
-            <p className="mb-1 text-xs font-medium text-muted">Where people ask</p>
-            <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-start sm:gap-2.5">
+        {/* On phones: three tiers, top to bottom. On wider screens: three columns, left to right. */}
+        <div className="relative grid gap-10 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-x-6 sm:gap-y-0">
+          <div className="flex flex-col gap-2 sm:gap-2.5">
+            <p className="mb-1 text-center text-xs font-medium text-muted sm:text-left">Where people ask</p>
+            <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-col sm:items-start sm:gap-2.5">
               {column('left').map((node) => (
                 <NodeCard key={node.id} node={node} state={stateOf(node.id)} />
               ))}
             </div>
           </div>
-          {/* Runneth sits a little low, so the Motion MCP lines clear it on their way to Motion data.
-              On phones, Motion data sits beside Runneth, so those lines never run behind it. */}
-          <div className="flex items-center gap-5 sm:mt-14 sm:justify-self-center">
-            <NodeCard node={motion} state={stateOf(motion.id)} className="sm:hidden" />
+          {/* The Motion MCP lines run from the assistants to Motion data without Runneth, so Runneth
+              stays out of their way: right of center on phones, and a little low on wider screens. */}
+          <div className="grid grid-cols-5 sm:mt-14 sm:block sm:justify-self-center">
             {column('center').map((node) => (
-              <NodeCard key={node.id} node={node} state={stateOf(node.id)} />
+              <NodeCard key={node.id} node={node} state={stateOf(node.id)} className="col-span-3 col-start-3 justify-self-center" />
             ))}
           </div>
-          <div className="flex flex-col items-center gap-2 sm:items-end sm:gap-2.5">
-            <p className="mb-1 text-xs font-medium text-muted">What Runneth reaches</p>
-            <div className="flex flex-wrap justify-center gap-2 sm:flex-col sm:items-end sm:gap-2.5">
-              {/* Extra space under Motion data lifts it, so the lines from the assistants pass above Runneth. */}
+          <div className="flex flex-col gap-2 sm:gap-2.5">
+            <p className="order-last mt-1 text-center text-xs font-medium text-muted sm:order-none sm:mb-1 sm:mt-0 sm:text-right">
+              What Runneth reaches
+            </p>
+            <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-col sm:items-end sm:gap-2.5">
+              {/* On wider screens, extra space under Motion data lifts it, so the lines from the
+                  assistants pass above Runneth. */}
               {column('right').map((node) => (
-                <NodeCard
-                  key={node.id}
-                  node={node}
-                  state={stateOf(node.id)}
-                  className={node.id === 'motion' ? 'max-sm:hidden sm:mb-6' : ''}
-                />
+                <NodeCard key={node.id} node={node} state={stateOf(node.id)} className={node.id === 'motion' ? 'sm:mb-6' : ''} />
               ))}
             </div>
           </div>

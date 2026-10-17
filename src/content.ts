@@ -58,6 +58,7 @@ export const edges: [string, string][] = [
   ['chatgpt', 'motion'],
   ['agents', 'motion'],
   ['claude', 'runneth'],
+  ['chatgpt', 'runneth'],
   ['agents', 'runneth'],
   ['slack', 'runneth'],
   ['chat', 'runneth'],
@@ -89,7 +90,7 @@ export const work: WorkItem[] = [
   {
     title: 'Runneth MCP',
     text: 'Launched Runneth as a public MCP server, so any AI agent can hand it creative strategy work.',
-    path: ['claude-runneth', 'agents-runneth', 'runneth-motion'],
+    path: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth', 'runneth-motion'],
   },
   {
     title: 'MCP support for Runneth',

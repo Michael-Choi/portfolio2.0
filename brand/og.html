@@ -253,6 +253,7 @@
         ['chatgpt', 'motion'],
         ['agents', 'motion'],
         ['claude', 'runneth'],
+        ['chatgpt', 'runneth'],
         ['agents', 'runneth'],
         ['slack', 'runneth'],
         ['chat', 'runneth'],
@@ -271,7 +272,7 @@
         apps: 'M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z',
       };
       // The highlighted path is the Runneth MCP project: agents hand work to Runneth, which reads Motion data.
-      const LIT = new Set(['claude-runneth', 'agents-runneth', 'runneth-motion']);
+      const LIT = new Set(['claude-runneth', 'chatgpt-runneth', 'agents-runneth', 'runneth-motion']);
       const LIT_NODES = new Set([...LIT].flatMap((key) => key.split('-')));
 
       const box = document.getElementById('box');

@@ -34,21 +34,21 @@
   --apps: #0c9a8f;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --paper: #0e0e10;
-    --card: #151517;
-    --ink: #ececee;
-    --muted: #9a9ca3;
-    --line: #26262a;
-    --accent: #ff8a66;
-    --hub: #ff6a3d;
-    --surface: #6d9cf0;
-    --data: #e2a636;
-    --tools: #a585f0;
-    --apps: #3cc1b5;
-  }
+/* The script in index.html sets data-theme before the page draws: the saved choice, or else the
+   system setting. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #0e0e10;
+  --card: #151517;
+  --ink: #ececee;
+  --muted: #9a9ca3;
+  --line: #26262a;
+  --accent: #ff8a66;
+  --hub: #ff6a3d;
+  --surface: #6d9cf0;
+  --data: #e2a636;
+  --tools: #a585f0;
+  --apps: #3cc1b5;
 }
 
 html {

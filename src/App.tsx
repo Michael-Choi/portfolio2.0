@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowIcon } from '@/components/Icons';
 import { IntegrationDiagram } from '@/components/IntegrationDiagram';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { diagramCaption, intro, previously, profile, work, workYear, type Rich, type WorkItem } from '@/content';
+import { useMediaQuery } from '@/useMediaQuery';
 
 const Heading = ({ children }: { children: ReactNode }) => (
   <h2 className="mb-3 text-sm font-medium text-muted">{children}</h2>
@@ -17,23 +19,6 @@ const External = ({ href, className, children }: { href: string; className?: str
 
 // Tailwind's xl breakpoint. At this width and up, the diagram moves to its own column on the right.
 const WIDE = '(min-width: 80rem)';
-
-// In one column, the pinned diagram shrinks to this scale, so the projects under it stay in view.
-const PIN_SCALE = 0.72;
-// The vertical padding of the pinned block in one column, in px (Tailwind py-6).
-const PIN_PADDING = 24;
-
-function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    const onChange = () => setMatches(media.matches);
-    onChange();
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
-  }, [query]);
-  return matches;
-}
 
 const RichText = ({ parts }: { parts: Rich }) => (
   <>
@@ -87,17 +72,17 @@ export default function App() {
   const rows = useRef<(HTMLLIElement | null)[]>([]);
   const wide = useMediaQuery(WIDE);
 
-  // In one column, the diagram shrinks and shows a thin divider while it is pinned. A sentinel
-  // just above the pinned block leaves the viewport at the moment the block sticks.
+  // In one column, a thin divider shows under the diagram while it is pinned. A sentinel just
+  // above the pinned block leaves the viewport at the moment the block sticks.
   const sentinel = useRef<HTMLDivElement>(null);
   const [pinned, setPinned] = useState(false);
   const pinBlock = useRef<HTMLDivElement>(null);
 
-  // The active project is the last one whose top has passed a line on the screen. In one column,
-  // the line sits just below the pinned, shrunken diagram, so the active project is the first one
-  // in view under it. In two columns, the line sits a little above the middle of the screen, so
-  // the last project can reach it before the page ends. Until the diagram pins in one column, and
-  // at the very top in two columns, no project is active and the diagram rests.
+  // In one column, the active project is the first one whose top shows below the pinned diagram.
+  // In two columns, it is the last one whose top has passed a line a little above the middle of
+  // the screen, so the last project can reach the line before the page ends. Until the diagram
+  // pins in one column, and at the very top in two columns, no project is active and the diagram
+  // rests.
   useEffect(() => {
     const update = () => {
       const pinnedNow = (sentinel.current?.getBoundingClientRect().top ?? 0) < 0;
@@ -105,8 +90,13 @@ export default function App() {
         setScrolled(null);
         return;
       }
-      const shrunkBottom = PIN_PADDING * 2 + (pinBlock.current?.offsetHeight ?? 0) * PIN_SCALE;
-      const line = wide ? window.innerHeight * 0.45 : shrunkBottom + 48;
+      if (!wide) {
+        const edge = (pinBlock.current?.getBoundingClientRect().bottom ?? 0) - 8;
+        const first = rows.current.findIndex((row) => row && row.getBoundingClientRect().top >= edge);
+        setScrolled(first === -1 ? rows.current.length - 1 : first);
+        return;
+      }
+      const line = window.innerHeight * 0.45;
       let index: number | null = null;
       for (const [i, row] of rows.current.entries()) {
         if (row && row.getBoundingClientRect().top <= line) index = i;
@@ -133,17 +123,19 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
-  const shrink = pinned && !wide;
   const activeIndex = hovered ?? scrolled;
   const active = activeIndex === null ? null : work[activeIndex].path;
 
   return (
     <main className="mx-auto max-w-[640px] px-6 pb-20 pt-20 text-[15px] leading-relaxed sm:pt-28 xl:grid xl:max-w-[1240px] xl:grid-cols-[minmax(0,1fr)_592px] xl:gap-x-[72px] xl:px-10">
-      <header className="xl:col-start-1">
-        <h1 className="font-medium">{profile.name}</h1>
-        <p className="text-muted">
-          {profile.role} · {profile.location}
-        </p>
+      <header className="flex items-start justify-between gap-6 xl:col-span-2">
+        <div>
+          <h1 className="font-medium">{profile.name}</h1>
+          <p className="text-muted">
+            {profile.role} · {profile.location}
+          </p>
+        </div>
+        <ThemeToggle />
       </header>
 
       <section aria-label="About" className="mt-12 space-y-4 xl:col-start-1">
@@ -158,29 +150,22 @@ export default function App() {
       {/* In one column, the diagram pins above the list while the projects scroll under it. In two
           columns, it starts level with the list on the right, pins while the list scrolls, and leaves
           with the end of the list. */}
-      <section aria-labelledby="work-title" className="mt-10 xl:col-span-2 xl:grid xl:grid-cols-subgrid">
+      {/* In one column, the list reaches 10rem into the section's bottom padding. A pinned block
+          stays out of its parent's padding, so the diagram lets go while the last project still
+          shows below it. */}
+      <section aria-labelledby="work-title" className="mt-10 max-xl:pb-40 xl:col-span-2 xl:grid xl:grid-cols-subgrid">
         <div ref={sentinel} aria-hidden="true" className="h-px xl:hidden" />
-        <div className="pointer-events-none sticky top-0 z-10 -mx-6 px-6 py-6 xl:pointer-events-auto xl:top-16 xl:col-start-2 xl:row-start-1 xl:mx-0 xl:self-start xl:p-0">
-          {/* A paper backdrop hides the projects that scroll under the diagram. It shrinks with the
-              diagram, so the projects show in the space that the diagram gives up. */}
-          <div
-            aria-hidden="true"
-            className={`absolute inset-x-0 top-0 bg-paper transition-[height,box-shadow] duration-200 motion-reduce:transition-none xl:hidden ${
-              shrink ? 'shadow-[0_1px_0_var(--line)]' : ''
-            }`}
-            style={{ height: shrink ? `calc(${PIN_PADDING * 2}px + (100% - ${PIN_PADDING * 2}px) * ${PIN_SCALE})` : '100%' }}
-          />
-          <div
-            ref={pinBlock}
-            className="pointer-events-auto relative origin-top transition-transform duration-200 motion-reduce:transition-none"
-            style={shrink ? { transform: `scale(${PIN_SCALE})` } : undefined}
-          >
-            <IntegrationDiagram active={active} caption={wide ? diagramCaption : undefined} />
-          </div>
+        <div
+          ref={pinBlock}
+          className={`sticky top-0 z-10 -mx-6 bg-paper px-6 py-4 transition-[box-shadow] duration-200 sm:py-6 xl:top-16 xl:col-start-2 xl:row-start-1 xl:mx-0 xl:self-start xl:p-0 ${
+            pinned && !wide ? 'shadow-[0_1px_0_var(--line)]' : ''
+          }`}
+        >
+          <IntegrationDiagram active={active} caption={wide ? diagramCaption : undefined} />
         </div>
         {/* In one column, the caption sits outside the pinned block, so it scrolls away. */}
         {!wide && <p className="mb-10 text-sm text-muted">{diagramCaption}</p>}
-        <div className="min-w-0 xl:col-start-1 xl:row-start-1">
+        <div className="min-w-0 max-xl:-mb-40 xl:col-start-1 xl:row-start-1">
           <Heading>
             <span className="flex items-baseline justify-between gap-6">
               <span id="work-title">Selected work at Motion</span>
