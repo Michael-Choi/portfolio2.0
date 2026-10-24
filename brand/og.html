@@ -1,5 +1,6 @@
 <!doctype html>
-<!-- The 1200×630 social preview image. Render it with brand/render.sh into public/og.png.
+<!-- The 1200×630 social preview image and video. brand/render.sh renders it into public/og.png, and
+     renders its ?frame=N pages into public/og.mp4.
      The diagram copies the layout, nodes, and edges of src/components/IntegrationDiagram.tsx. -->
 <html>
   <head>
@@ -276,6 +277,7 @@
       const LIT_NODES = new Set([...LIT].flatMap((key) => key.split('-')));
 
       const box = document.getElementById('box');
+      const lines = document.getElementById('lines');
       for (const node of NODES) {
         const card = document.createElement('span');
         card.dataset.node = node.id;
@@ -319,7 +321,17 @@
           boxes[card.dataset.node] = { left, right: left + width, top, bottom: top + height, cx: left + width / 2, cy: top + height / 2 };
         });
 
-        const lines = document.getElementById('lines');
+        const frame = new URLSearchParams(location.search).get('frame');
+        if (frame !== null) drawFrame(boxes, Number(frame) / FPS);
+        else drawStill(boxes);
+
+        const frameBox = document.getElementById('frame');
+        box.style.transform = `scale(${SCALE})`;
+        frameBox.style.width = `${box.offsetWidth * SCALE}px`;
+        frameBox.style.height = `${box.offsetHeight * SCALE}px`;
+      });
+
+      function drawStill(boxes) {
         let svg = '<defs><filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
         const dots = [];
         for (const [from, to] of EDGES) {
@@ -340,12 +352,86 @@
           const point = path.getPointAtLength(path.getTotalLength() * 0.55);
           lines.insertAdjacentHTML('beforeend', `<circle cx="${point.x}" cy="${point.y}" r="3.5" fill="var(--hub)" stroke="var(--card)" stroke-width="1.5"/>`);
         }
+      }
 
-        const frame = document.getElementById('frame');
-        box.style.transform = `scale(${SCALE})`;
-        frame.style.width = `${box.offsetWidth * SCALE}px`;
-        frame.style.height = `${box.offsetHeight * SCALE}px`;
-      });
+      // With ?frame=N, the page draws frame N of the looping video that brand/render.sh encodes into
+      // public/og.mp4. The video plays the site's states: every connection flowing, then the connection
+      // each project built (the paths in src/content.ts). Sign-in is left out, because it lights every
+      // Runneth edge and looks like the rest state. Each scene fades into the next over its last FADE seconds.
+      const FPS = 30;
+      const FADE = 0.2;
+      const SCENES = [
+        { lit: [], seconds: 2.8 },
+        { lit: ['claude-motion', 'chatgpt-motion', 'agents-motion'], seconds: 2 },
+        { lit: ['claude-runneth', 'chatgpt-runneth', 'agents-runneth'], seconds: 2 },
+        { lit: ['runneth-mcp'], seconds: 2 },
+        { lit: ['runneth-apps'], seconds: 2 },
+        { lit: ['slack-runneth'], seconds: 2 },
+      ];
+      // A dot takes TRIP seconds to cross its edge. The loop lasts 12.8 s, a whole number of trips, so it
+      // repeats without a jump.
+      const TRIP = 1.6;
+
+      // How an edge and a card look at rest, on the lit path, and off it. Copied from IntegrationDiagram.tsx.
+      function edgeLook(lit, key) {
+        if (lit.size === 0) return { hub: 1, opacity: 0.45, width: 1.25, glow: 0, dot: 1, r: 2.75 };
+        if (lit.has(key)) return { hub: 1, opacity: 1, width: 1.75, glow: 0.35, dot: 1, r: 3.5 };
+        return { hub: 0, opacity: 0.14, width: 1.25, glow: 0, dot: 0, r: 2.75 };
+      }
+      function cardLook(lit, id) {
+        if (lit.size === 0) return { opacity: 1, on: 0 };
+        if ([...lit].some((key) => key.split('-').includes(id))) return { opacity: 1, on: 1 };
+        return { opacity: 0.4, on: 0 };
+      }
+      function mix(a, b, k) {
+        const out = {};
+        for (const key in a) out[key] = a[key] + (b[key] - a[key]) * k;
+        return out;
+      }
+
+      function sceneAt(t) {
+        let end = 0;
+        for (let i = 0; i < SCENES.length; i++) {
+          end += SCENES[i].seconds;
+          if (t < end || i === SCENES.length - 1) {
+            const k = Math.min(1, Math.max(0, (t - (end - FADE)) / FADE));
+            const next = SCENES[(i + 1) % SCENES.length];
+            return { from: new Set(SCENES[i].lit), to: new Set(next.lit), k: k * k * (3 - 2 * k) };
+          }
+        }
+      }
+
+      function drawFrame(boxes, t) {
+        const { from, to, k } = sceneAt(t);
+        let svg = '<defs><filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+        EDGES.forEach(([a, b], index) => {
+          const key = `${a}-${b}`;
+          const d = link(boxes[a], boxes[b]);
+          const look = mix(edgeLook(from, key), edgeLook(to, key), k);
+          if (look.glow > 0) {
+            svg += `<path d="${d}" fill="none" stroke="var(--hub)" stroke-opacity="${look.glow}" stroke-width="5" filter="url(#glow)"/>`;
+          }
+          svg += `<path d="${d}" fill="none" style="stroke: color-mix(in srgb, var(--hub) ${look.hub * 100}%, var(--muted))" stroke-opacity="${look.opacity}" stroke-width="${look.width}" stroke-linecap="round"/>`;
+          if (look.dot > 0) {
+            // Like the site, each dot starts at a different point of its trip, so the dots do not move in step.
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', d);
+            const trip = ((t + ((index * 0.37) % TRIP)) / TRIP) % 1;
+            const point = path.getPointAtLength(path.getTotalLength() * trip);
+            svg += `<circle cx="${point.x}" cy="${point.y}" r="${look.r}" opacity="${look.dot}" fill="var(--hub)" stroke="var(--card)" stroke-width="1.5"/>`;
+          }
+        });
+        lines.innerHTML = svg;
+
+        box.querySelectorAll('[data-node]').forEach((card) => {
+          const look = mix(cardLook(from, card.dataset.node), cardLook(to, card.dataset.node), k);
+          card.classList.remove('on');
+          card.style.opacity = look.opacity;
+          if (!card.classList.contains('hub')) {
+            card.style.borderColor = `color-mix(in srgb, rgb(17 17 19 / 0.25) ${look.on * 100}%, var(--line))`;
+          }
+        });
+      }
     </script>
   </body>
 </html>
